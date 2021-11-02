@@ -1,0 +1,8 @@
+{
+  "realm": "csrs",
+  "auth-server-url": "http://localhost:8081/auth",
+  "ssl-required": "external",
+  "resource": "csrs-frontend",
+  "public-client": true,
+  "confidential-port": 0
+}

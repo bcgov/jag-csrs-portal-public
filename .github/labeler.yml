@@ -1,0 +1,7 @@
+# Add 'Csrs Portal' to changes in csrs portal
+"Csrs Portal":
+  - src/frontend/csrs-portal/**/*
+
+# Add 'DevOps' to changes in openshift folder
+"DevOps":
+  - infrastructure/**/*
