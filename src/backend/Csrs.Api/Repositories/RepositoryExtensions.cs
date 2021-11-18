@@ -39,8 +39,8 @@ namespace Csrs.Api.Repositories
             // Add other Services
             services.AddTransient<ITokenService, TokenService>();
 
-            services.AddTransient<IFileRepository, FileRepository>();
-            services.AddTransient<IPartyRepository, PartyRepository>();
+            services.AddTransient<IFileRepository, CsrsFileRepository>();
+            services.AddTransient<ICsrsPartyRepository, CsrsPartyRepository>();
         }
     }
 }

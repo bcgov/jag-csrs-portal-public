@@ -25,9 +25,22 @@ namespace CrmSvcUtilExtensions
             }
         }
 
-        public void AppendLine(string value)
+        public void Append(string value, bool indent = true)
         {
-            AppendIndent();
+            if (indent)
+            {
+                AppendIndent();
+            }
+
+            sb.Append(value);
+        }
+
+        public void AppendLine(string value, bool indent = true)
+        {
+            if (indent)
+            {
+                AppendIndent();
+            }
             sb.AppendLine(value);
         }
 

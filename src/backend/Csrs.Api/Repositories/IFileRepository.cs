@@ -1,6 +1,8 @@
-﻿namespace Csrs.Api.Repositories
+﻿using Csrs.Api.Models.Dynamics;
+
+namespace Csrs.Api.Repositories
 {
-    public interface IFileRepository : IRepository<Csrs.Api.Models.Dynamics.File>
+    public interface IFileRepository : IRepository<SSG_CsrsFile>
     {
     }
 }

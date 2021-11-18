@@ -85,42 +85,75 @@ namespace CrmSvcUtilExtensions
             mappings.Entities.Add(new EntityMappingDefinition
             {
                 LogicalName = "ssg_csrsparty",
-                Name = "Party",
+                Name = "SSG_CsrsParty",
                 Attributes = new AttributeMappingDefinitionCollection
                 {
-                    new AttributeMappingDefinition() { LogicalName = "ssg_street1", Name =  "AddressStreet1" },
-                    new AttributeMappingDefinition() { LogicalName = "ssg_street2", Name =  "AddressStreet2" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_areapostalcode", Name =  "PostalCode" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_bceid_displayname", Name =  "BCeIDDisplayName" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_bceid_guid", Name =  "BCeIDGuid" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_bceid_userid", Name =  "BCeID_UserId" },
                     new AttributeMappingDefinition() { LogicalName = "ssg_csrspartyid", Name =  "PartyId" },
                     new AttributeMappingDefinition() { LogicalName = "ssg_fullname", Name =  "FullName" },
-                    new AttributeMappingDefinition() { LogicalName = "ssg_bceid_userid", Name =  "BCeID_UserId" },
-                    new AttributeMappingDefinition() { LogicalName = "ssg_bceid_guid", Name =  "BCeIDGuid" },
-                    new AttributeMappingDefinition() { LogicalName = "ssg_bceid_displayname", Name =  "BCeIDDisplayName" },
-                    new AttributeMappingDefinition() { LogicalName = "ssg_areapostalcode", Name =  "PostalCode" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_street1", Name =  "AddressStreet1" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_street2", Name =  "AddressStreet2" },
                 }
             });
 
             mappings.Entities.Add(new EntityMappingDefinition
             {
                 LogicalName = "ssg_csrsfile",
-                Name = "File",
+                Name = "SSG_CsrsFile",
                 Attributes = new AttributeMappingDefinitionCollection
                 {
                     new AttributeMappingDefinition() { LogicalName = "ssg_csrsfileid", Name =  "CsrsFileId" },
                     new AttributeMappingDefinition() { LogicalName = "ssg_filenumber", Name =  "FileNumber" },
                     new AttributeMappingDefinition() { LogicalName = "ssg_autonumber", Name =  "AutoNumber" },
+                    // skipped
+                    new AttributeMappingDefinition() { LogicalName = "ssg_recipientschildsupportonorder", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_recipientschildsupportonorder_base", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_recipientsincomeonorder", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_recipientsincomeonorder_base", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_incomeonorder", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_incomeonorder_base", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_incomeyear1", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_incomeyear1_base", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_incomeyear2", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_incomeyear2_base", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_incomeyear3", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_incomeyear3_base", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_offsetchildsupportamountonorder", Skip =  true },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_offsetchildsupportamountonorder_base", Skip =  true },
                 }
             });
 
             mappings.Entities.Add(new EntityMappingDefinition
             {
-                LogicalName = "ssg_feedbackform",
-                Name = "FeedbackForm"
+                LogicalName = "ssg_csrsfeedback",
+                Name = "SSG_CsrsFeedback",
+                Attributes = new AttributeMappingDefinitionCollection
+                {
+                    new AttributeMappingDefinition() { LogicalName = "ssg_csrsfeedbackid", Name =  "FeedbackId" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_csrsfeedbackmessage", Name =  "Message" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_csrsfeedbacksubject", Name =  "Subject" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_csrsparty", Name =  "Party" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_name", Name =  "Name" },
+                }
             });
 
             mappings.Entities.Add(new EntityMappingDefinition
             {
-                LogicalName = "ssg_message",
-                Name = "Message"
+                LogicalName = "ssg_csrsportalmessage",
+                Name = "SSG_CsrsPortalMessage",
+                Attributes = new AttributeMappingDefinitionCollection
+                {
+                    new AttributeMappingDefinition() { LogicalName = "ssg_csrsfile", Name =  "File" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_csrsmessageattachment", Name =  "HasAttachment" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_csrsmessagedate", Name =  "Date" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_csrsmessagesubject", Name =  "Subject" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_csrsportalmessageid", Name =  "MessageId" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_csrsmessageread", Name =  "Read" },                    
+                    new AttributeMappingDefinition() { LogicalName = "ssg_name", Name =  "Name" },
+                }
             });
 
             return mappings;

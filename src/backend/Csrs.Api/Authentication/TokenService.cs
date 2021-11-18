@@ -62,7 +62,7 @@ namespace Csrs.Api.Authentication
 
             var content = new FormUrlEncodedContent(data);
 
-            using (var request = new HttpRequestMessage(HttpMethod.Post, _configuration.OAuthUrl) { Content = content })
+            using (var request = new HttpRequestMessage(HttpMethod.Post, _configuration.AuthorizationUrl) { Content = content })
             {
                 request.Headers.Add("client-request-id", Guid.NewGuid().ToString());
                 request.Headers.Add("return-client-request-id", "true");

@@ -1,3 +1,4 @@
+using Csrs.Api.Authentication;
 using Csrs.Api.Configuration;
 using Csrs.Api.Health;
 using Csrs.Api.Repositories;
@@ -6,6 +7,7 @@ using MediatR;
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddCsrsEnvironmentVariables();
 
+builder.AddJwtBearerAuthentication();
 builder.UseSerilog();
 builder.AddHealthChecks();
 builder.AddRepositories();

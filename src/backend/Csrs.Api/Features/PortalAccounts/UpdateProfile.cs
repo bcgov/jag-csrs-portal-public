@@ -30,11 +30,11 @@ namespace Csrs.Api.Features.PortalAccounts
 
         public class Handler : IRequestHandler<Request, Response>
         {
-            private readonly IPartyRepository _repository;
+            private readonly ICsrsPartyRepository _repository;
             private readonly IMapper _mapper;
             private readonly ILogger<Handler> _logger;
 
-            public Handler(IPartyRepository repository, IMapper mapper, ILogger<Handler> logger)
+            public Handler(ICsrsPartyRepository repository, IMapper mapper, ILogger<Handler> logger)
             {
                 _repository = repository ?? throw new ArgumentNullException(nameof(repository));
                 _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -42,8 +42,8 @@ namespace Csrs.Api.Features.PortalAccounts
             }
 
             public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
-            {                
-                Party party = _mapper.Map<Party>(request.Account);
+            {
+                SSG_CsrsParty party = _mapper.Map<SSG_CsrsParty>(request.Account);
                 party = await _repository.UpdateAsync(party, cancellationToken);
 
                 PortalAccount account = _mapper.Map<PortalAccount>(party);

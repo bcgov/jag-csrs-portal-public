@@ -5,21 +5,21 @@ namespace Csrs.Api.Configuration
     public class OAuthConfiguration
     {
         [Required]
-        public string OAuthUrl { get; set; }
+        public string? AuthorizationUrl { get; set; }
 
         [Required]
-        public string ResourceUrl { get; set; }
+        public string? ResourceUrl { get; set; }
 
         [Required]
-        public string ClientId { get; set; }
+        public string? ClientId { get; set; }
 
         [Required]
-        public string Secret { get; set; }
+        public string? Secret { get; set; }
 
         [Required]
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         [Required]
-        public string Password { get; set; }
+        public string? Password { get; set; }
     }
 }

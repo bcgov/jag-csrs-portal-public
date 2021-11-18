@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace CrmSvcUtilExtensions
 {
@@ -10,7 +11,10 @@ namespace CrmSvcUtilExtensions
     {
         public void Skip(string logicalName)
         {
-            Add(new AttributeMappingDefinition { LogicalName = logicalName, Skip = true });
+            if (!this.Any(_ => _.LogicalName == logicalName))
+            {
+                Add(new AttributeMappingDefinition { LogicalName = logicalName, Skip = true });
+            }
         }
 
         public void Skip(params string[] logicalNames)

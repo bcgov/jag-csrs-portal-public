@@ -28,7 +28,11 @@ namespace CrmSvcUtilExtensions
             if (skip) return false;
 
             // did we explictly skip this on this entity?
-            skip = _mappings.Entities.Any(_ => _.LogicalName == attributeMetadata.EntityLogicalName && _.Skip);
+            var entityMapping = _mappings.Entities.SingleOrDefault(_ => _.LogicalName == attributeMetadata.EntityLogicalName);
+            if (entityMapping != null)
+            {
+                skip = entityMapping.Attributes.Any(_ => _.LogicalName == attributeMetadata.LogicalName && _.Skip);
+            }
             if (skip) return false;
 
             skip = !_service.GenerateAttribute(attributeMetadata, services);

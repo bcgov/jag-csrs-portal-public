@@ -16,16 +16,20 @@ namespace CrmSvcUtilExtensions
 
         public NamingService(INamingService defaultService)
         {
-            //if (!Debugger.IsAttached)
-            //{
-            //    Debugger.Launch();
-            //}
             _namingService = defaultService;
         }
 
         public string GetNameForAttribute(EntityMetadata entityMetadata, AttributeMetadata attributeMetadata, IServiceProvider services)
         {
+            // entity level attributes
             var attributeMapping = _mappings.GetAttributeMapping(entityMetadata, attributeMetadata);
+            if (attributeMapping != null)
+            {
+                return attributeMapping.Name;
+            }
+
+            // global attribute mappings like Status ans StateCode
+            attributeMapping = _mappings.Attributes.Where(_ => _.LogicalName == attributeMetadata.LogicalName && !_.Skip).SingleOrDefault();
             if (attributeMapping != null)
             {
                 return attributeMapping.Name;
