@@ -27,3 +27,12 @@ their development environment to simplify configuration. For reference, the user
 at this location.
 
 %APPDATA%\Microsoft\UserSecrets\c672e48c-4fbd-4422-9e9e-e36f5e014384
+
+```
+dotnet user-secrets set "OAuth:AuthorizationUrl" "https://example.com/adfs/oauth2/token"
+dotnet user-secrets set "OAuth:ResourceUrl" "https://example.org/api/data/v9.0"
+dotnet user-secrets set "OAuth:ClientId" "00000000-0000-0000-0000-000000000000"
+dotnet user-secrets set "OAuth:Secret" "example-kKgJyRY8QzshrMa82eoHpD9HCKQM8vkx"
+dotnet user-secrets set "OAuth:Username" "username"
+dotnet user-secrets set "OAuth:Password" "not-really-my-password"
+```
