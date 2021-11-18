@@ -1,4 +1,5 @@
 ﻿using Csrs.Api.Models;
+using Csrs.Api.Repositories;
 using MediatR;
 
 namespace Csrs.Api.Features.PortalAccounts
@@ -27,15 +28,18 @@ namespace Csrs.Api.Features.PortalAccounts
 
         public class Handler : IRequestHandler<Request, Response>
         {
+            private readonly IPartyRepository _repository;
             private readonly ILogger<Handler> _logger;
 
-            public Handler(ILogger<Handler> logger)
+            public Handler(IPartyRepository repository, ILogger<Handler> logger)
             {
+                _repository = repository ?? throw new ArgumentNullException(nameof(repository));
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             }
 
             public Task<Response> Handle(Request request, CancellationToken cancellationToken)
             {
+                
                 return Task.FromResult(new Response(string.Empty));
             }
         }

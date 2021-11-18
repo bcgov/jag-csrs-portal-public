@@ -44,7 +44,7 @@ namespace Csrs.Api.Controllers
         {
             UpdateProfile.Request request = new UpdateProfile.Request(account);
             UpdateProfile.Response? response = await _mediator.Send(request);
-            return response.Id;
+            return response.Account.PartyGuid.ToString();
         }
     }
 }
