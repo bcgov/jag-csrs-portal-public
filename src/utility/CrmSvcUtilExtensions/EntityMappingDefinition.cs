@@ -6,9 +6,9 @@ namespace CrmSvcUtilExtensions
     {
         public EntityMappingDefinition()
         {
-            Attributes = new List<AttributeMappingDefinition>();
+            Attributes = new AttributeMappingDefinitionCollection();
         }
 
-        public List<AttributeMappingDefinition> Attributes { get; set; }
+        public AttributeMappingDefinitionCollection Attributes { get; set; }
     }
 }

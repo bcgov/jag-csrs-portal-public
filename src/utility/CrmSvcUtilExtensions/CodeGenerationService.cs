@@ -56,7 +56,7 @@ namespace CrmSvcUtilExtensions
 
             BuildFileHeader(buffer);
 
-            buffer.AppendLine("");
+            buffer.AppendLine();
             buffer.AppendLine($"namespace {targetNamespace}");
             buffer.AppendLine("{");
             buffer.Indent();
@@ -80,7 +80,8 @@ namespace CrmSvcUtilExtensions
         {
             buffer.AppendLine("using System;");
             buffer.AppendLine("using System.Text.Json.Serialization;");
-
+            buffer.AppendLine();
+            buffer.AppendLine("#nullable enable");
         }
 
         private void BuildCommonTypes(IndentingStringBuilder buffer)
@@ -95,11 +96,13 @@ namespace CrmSvcUtilExtensions
             buffer.AppendLine("}");
 
             // EntityReference
+            buffer.AppendLine();
             buffer.AppendLine("public class EntityReference");
             buffer.AppendLine("{");
             buffer.Indent();
 
 
+            buffer.AppendLine();
             buffer.AppendLine("public EntityReference()");
             buffer.AppendLine("{");
             buffer.AppendLine("}");
@@ -126,6 +129,7 @@ namespace CrmSvcUtilExtensions
             buffer.AppendLine("}");
 
             // Money
+            buffer.AppendLine();
             buffer.AppendLine("public class Money");
             buffer.AppendLine("{");
             buffer.Indent();
@@ -135,7 +139,6 @@ namespace CrmSvcUtilExtensions
 
             buffer.Unindent();
             buffer.AppendLine("}");
-
         }
 
         private void BuildOptionSets(OptionSetMetadataBase[] optionSetMetadata, IServiceProvider services)
@@ -163,10 +166,10 @@ namespace CrmSvcUtilExtensions
             IServiceProvider services,
             IndentingStringBuilder buffer)
         {
-            var entityName = namingService.GetNameForEntity(entityMetadata, services);
+            buffer.AppendLine();
 
             var entityDescription = entityMetadata.Description.LocalizedLabels.FirstOrDefault()?.Label;
-            if (entityDescription != null)
+            if (!string.IsNullOrWhiteSpace(entityDescription))
             {
                 buffer.AppendLine($"/// <summary>");
                 buffer.AppendLine($"/// {entityDescription}");
@@ -177,13 +180,18 @@ namespace CrmSvcUtilExtensions
                 buffer.AppendLine($"/// <summary></summary>");
             }
 
+            var entityName = namingService.GetNameForEntity(entityMetadata, services);
+
             buffer.AppendLine($"public partial class {entityName} : Entity");
             buffer.AppendLine("{");
             buffer.Indent();
 
             foreach (var attribute in entityMetadata.Attributes.Where(_ => _.AttributeType != null).OrderBy(_ => _.LogicalName))
             {
-                BuildAttribute(entityMetadata, attribute, codeWriterFilterService, namingService, services, buffer);
+                if (codeWriterFilterService.GenerateAttribute(attribute, services))
+                {
+                    BuildAttribute(entityMetadata, attribute, codeWriterFilterService, namingService, services, buffer);
+                }
             }
 
             buffer.Unindent();
@@ -208,6 +216,8 @@ namespace CrmSvcUtilExtensions
                 return;
             }
 
+            // if (entity.PrimaryIdAttribute == attributeMetadatum.LogicalName && attributeMetadatum.IsPrimaryId.GetValueOrDefault())
+
             string attributeType = GetAttributeType(attribute.AttributeType.Value);
             if (string.IsNullOrEmpty(attributeType))
             {
@@ -217,7 +227,7 @@ namespace CrmSvcUtilExtensions
             var attributeName = namingService.GetNameForAttribute(entityMetadata, attribute, services);
             var attributesDescription = attribute.Description.LocalizedLabels.FirstOrDefault()?.Label;
 
-            if (string.IsNullOrWhiteSpace(attributesDescription))
+            if (!string.IsNullOrWhiteSpace(attributesDescription))
             {
                 buffer.AppendLine($"/// <summary>");
                 buffer.AppendLine($"/// {attributesDescription}");
@@ -235,9 +245,6 @@ namespace CrmSvcUtilExtensions
 
             buffer.AppendLine($"[JsonPropertyName(\"{attribute.LogicalName}\")]");
             buffer.AppendLine($"public {attributeType}? {attributeName} {{ get; set; }}");
-
-            Money money;
-
         }
 
         private string GetAttributeType(AttributeTypeCode attributeTypeCode)

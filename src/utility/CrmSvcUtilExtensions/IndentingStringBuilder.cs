@@ -31,6 +31,12 @@ namespace CrmSvcUtilExtensions
             sb.AppendLine(value);
         }
 
+        public void AppendLine()
+        {
+            sb.AppendLine();
+        }
+
+
         public override string ToString() => sb.ToString();
 
         private void AppendIndent()

@@ -1,7 +1,7 @@
-﻿
-using Microsoft.Crm.Services.Utility;
+﻿using Microsoft.Crm.Services.Utility;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
+using System.Linq;
 
 namespace CrmSvcUtilExtensions
 {
@@ -13,9 +13,9 @@ namespace CrmSvcUtilExtensions
 
         public CodeWriterFilterService(ICodeWriterFilterService defaultService)
         {
-            //if (!Debugger.IsAttached)
+            //if (!System.Diagnostics.Debugger.IsAttached)
             //{
-            //    Debugger.Launch();
+            //    System.Diagnostics.Debugger.Launch();
             //}
 
             _service = defaultService;
@@ -23,12 +23,27 @@ namespace CrmSvcUtilExtensions
 
         bool ICodeWriterFilterService.GenerateAttribute(AttributeMetadata attributeMetadata, IServiceProvider services)
         {
-            return this._service.GenerateAttribute(attributeMetadata, services);
+            // global skip attribute list?
+            var skip = _mappings.Attributes.Any(_ => _.LogicalName == attributeMetadata.LogicalName && _.Skip);
+            if (skip) return false;
+
+            // did we explictly skip this on this entity?
+            skip = _mappings.Entities.Any(_ => _.LogicalName == attributeMetadata.EntityLogicalName && _.Skip);
+            if (skip) return false;
+
+            skip = !_service.GenerateAttribute(attributeMetadata, services);
+            return !skip;
         }
 
         bool ICodeWriterFilterService.GenerateEntity(EntityMetadata entityMetadata, IServiceProvider services)
         {
-            return _mappings.Generate(entityMetadata);
+            var skip = _mappings.Entities.Any(_ => _.LogicalName == entityMetadata.LogicalName && _.Skip);
+            if (!skip)
+            {
+                skip = !_mappings.Generate(entityMetadata);
+            }
+
+            return !skip;
         }
 
         bool ICodeWriterFilterService.GenerateOption(OptionMetadata optionMetadata, IServiceProvider services)

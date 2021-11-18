@@ -14,13 +14,13 @@ namespace CrmSvcUtilExtensions
         public MappingDefinition()
         {
             Entities = new List<EntityMappingDefinition>();
-            Attributes = new List<AttributeMappingDefinition>();
+            Attributes = new AttributeMappingDefinitionCollection();
         }
 
         public string Prefix { get; set; }
 
         public List<EntityMappingDefinition> Entities { get; set; }
-        public List<AttributeMappingDefinition> Attributes { get; set; }
+        public AttributeMappingDefinitionCollection Attributes { get; set; }
 
         public static MappingDefinition Current { get; private set; }
 
@@ -72,28 +72,30 @@ namespace CrmSvcUtilExtensions
             MappingDefinition mappings = new MappingDefinition();
             mappings.Prefix = "ssg_";
 
-            mappings.Attributes.Add(new AttributeMappingDefinition
-            {
-                LogicalName = "statecode",
-                Name = "StateCode"
-            });
+            mappings.Attributes.Add(new AttributeMappingDefinition { LogicalName = "statecode", Name = "StateCode" });
+            mappings.Attributes.Add(new AttributeMappingDefinition { LogicalName = "statuscode", Name = "StatusCode" });
 
-            mappings.Attributes.Add(new AttributeMappingDefinition
-            {
-                LogicalName = "statuscode",
-                Name = "StatusCode"
-            });
+            // skip any of these fields if we dont need them
+            mappings.Attributes.Skip("createdby", "createdbyname", "createdonbehalfby", "createdonbehalfbyname","createdbyyominame","createdonbehalfbyyominame", "overriddencreatedon");
+            mappings.Attributes.Skip("modifiedby","modifiedbyname", "modifiedonbehalfby", "modifiedbyyominame","modifiedonbehalfbyyominame");
+            mappings.Attributes.Skip("ownerid", "owneridname", "owneridtype", "owneridyominame", "owningbusinessunit", "owningteam", "owninguser");
+            mappings.Attributes.Skip("importsequencenumber", "versionnumber", "utcconversiontimezonecode", "timezoneruleversionnumber");
 
+            // add the entity mappings
             mappings.Entities.Add(new EntityMappingDefinition
             {
                 LogicalName = "ssg_csrsparty",
                 Name = "Party",
-                Attributes = new List<AttributeMappingDefinition>()
+                Attributes = new AttributeMappingDefinitionCollection
                 {
+                    new AttributeMappingDefinition() { LogicalName = "ssg_street1", Name =  "AddressStreet1" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_street2", Name =  "AddressStreet2" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_csrspartyid", Name =  "PartyId" },
                     new AttributeMappingDefinition() { LogicalName = "ssg_fullname", Name =  "FullName" },
                     new AttributeMappingDefinition() { LogicalName = "ssg_bceid_userid", Name =  "BCeID_UserId" },
-                    new AttributeMappingDefinition() { LogicalName = "ssg_bceid_guid", Name =  "BCeID_Guid" },
-                    new AttributeMappingDefinition() { LogicalName = "ssg_bceid_displayname", Name =  "BCeID_DisplayName" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_bceid_guid", Name =  "BCeIDGuid" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_bceid_displayname", Name =  "BCeIDDisplayName" },
+                    new AttributeMappingDefinition() { LogicalName = "ssg_areapostalcode", Name =  "PostalCode" },
                 }
             });
 
@@ -101,7 +103,7 @@ namespace CrmSvcUtilExtensions
             {
                 LogicalName = "ssg_csrsfile",
                 Name = "File",
-                Attributes = new List<AttributeMappingDefinition>()
+                Attributes = new AttributeMappingDefinitionCollection
                 {
                     new AttributeMappingDefinition() { LogicalName = "ssg_csrsfileid", Name =  "CsrsFileId" },
                     new AttributeMappingDefinition() { LogicalName = "ssg_filenumber", Name =  "FileNumber" },
