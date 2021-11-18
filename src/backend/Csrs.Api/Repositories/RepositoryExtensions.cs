@@ -1,6 +1,7 @@
 ﻿using Csrs.Api.Authentication;
 using Csrs.Api.Configuration;
 using Simple.OData.Client;
+using System.Configuration;
 
 namespace Csrs.Api.Repositories
 {
@@ -14,6 +15,11 @@ namespace Csrs.Api.Repositories
         {
             var configuration = builder.Configuration.Get<CsrsConfiguration>();
             var oAuthOptions = configuration?.OAuth;
+
+            if (oAuthOptions is null || oAuthOptions.ResourceUrl is null)
+            {
+                throw new ConfigurationErrorsException("OAuth configuration is not set");
+            }
 
             var services = builder.Services;
 

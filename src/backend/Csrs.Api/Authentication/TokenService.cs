@@ -12,11 +12,11 @@ namespace Csrs.Api.Authentication
 
         public IReadOnlyDictionary<string, IEnumerable<string>> Headers { get; private set; }
 
-        public OAuthApiException(string message, int statusCode, string response, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> headers, System.Exception innerException)
-            : base(message + "\n\nStatus: " + statusCode + "\nResponse: \n" + response.Substring(0, response.Length >= 512 ? 512 : response.Length), innerException)
+        public OAuthApiException(string message, int statusCode, string? response, System.Collections.Generic.IReadOnlyDictionary<string, System.Collections.Generic.IEnumerable<string>> headers, System.Exception? innerException)
+            : base(message + "\n\nStatus: " + statusCode + "\nResponse: \n" + TrimToLength(response, 512), innerException)
         {
             StatusCode = statusCode;
-            Response = response;
+            Response = response ?? string.Empty;
             Headers = headers;
         }
 
@@ -24,11 +24,23 @@ namespace Csrs.Api.Authentication
         {
             return $"HTTP Response: \n\n{Response}\n\n{base.ToString()}";
         }
+
+        private static string TrimToLength(string? value, int length)
+        {
+            if (value is null) return string.Empty;
+
+            if (value.Length > length)
+            {
+                value = value[..length];
+            }
+
+            return value;
+        }
     }
 
     public interface IOAuthApiClient
     {
-        Task<Token> GetRefreshToken(CancellationToken cancellationToken);
+        Task<Token?> GetRefreshToken(CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -42,19 +54,19 @@ namespace Csrs.Api.Authentication
 
         public OAuthApiClient(HttpClient httpClient, OAuthConfiguration configuration)
         {
-            _httpClient = httpClient;
-            _configuration = configuration;
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        public async Task<Token> GetRefreshToken(CancellationToken cancellationToken)
+        public async Task<Token?> GetRefreshToken(CancellationToken cancellationToken)
         {
             Dictionary<string, string> data = new()
             {
-                {"resource", _configuration.ResourceUrl},
-                {"client_id", _configuration.ClientId},
-                {"client_secret", _configuration.Secret},
-                {"username", _configuration.Username},
-                {"password", _configuration.Password},
+                {"resource", _configuration.ResourceUrl ?? string.Empty},
+                {"client_id", _configuration.ClientId ?? string.Empty },
+                {"client_secret", _configuration.Secret ?? string.Empty },
+                {"username", _configuration.Username ?? string.Empty },
+                {"password", _configuration.Password ?? string.Empty },
                 {"scope", "openid"},
                 {"response_mode", "form_post"},
                 {"grant_type", "password"}
@@ -62,36 +74,38 @@ namespace Csrs.Api.Authentication
 
             var content = new FormUrlEncodedContent(data);
 
-            using (var request = new HttpRequestMessage(HttpMethod.Post, _configuration.AuthorizationUrl) { Content = content })
+            using var request = new HttpRequestMessage(HttpMethod.Post, _configuration.AuthorizationUrl) { Content = content };
+            request.Headers.Add("client-request-id", Guid.NewGuid().ToString());
+            request.Headers.Add("return-client-request-id", "true");
+            request.Headers.Add("Accept", "application/json");
+
+            var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead,
+                cancellationToken);
+
+            if (!response.IsSuccessStatusCode)
             {
-                request.Headers.Add("client-request-id", Guid.NewGuid().ToString());
-                request.Headers.Add("return-client-request-id", "true");
-                request.Headers.Add("Accept", "application/json");
+                var responseData = response.Content == null
+                    ? null
+                    : await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
-                var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead,
-                    cancellationToken);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var responseData = response.Content == null
-                        ? null
-                        : await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                    throw new OAuthApiException(
-                        "The HTTP status code of the response was not expected (" + (int)response.StatusCode + ").",
-                        (int)response.StatusCode, responseData,
-                        response.Headers.ToDictionary(x => x.Key, x => x.Value), null);
-                }
-
-                Token token = await response.Content.ReadFromJsonAsync<Token>();
+                throw new OAuthApiException(
+                    "The HTTP status code of the response was not expected (" + (int)response.StatusCode + ").",
+                    (int)response.StatusCode, responseData,
+                    response.Headers.ToDictionary(x => x.Key, x => x.Value), null);
+            }
+            if (response.Content != null)
+            {
+                Token? token = await response.Content.ReadFromJsonAsync<Token>(cancellationToken: cancellationToken);
                 return token;
             }
+
+            return null; // will this happen?
         }
     }
 
     public interface ITokenService
     {
-        Task<Token> GetTokenAsync(CancellationToken cancellationToken);
+        Task<Token?> GetTokenAsync(CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -117,15 +131,15 @@ namespace Csrs.Api.Authentication
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<Token> GetTokenAsync(CancellationToken cancellationToken)
+        public async Task<Token?> GetTokenAsync(CancellationToken cancellationToken)
         {
             return await GetOrRefreshTokenAsync(cancellationToken);
         }
 
-        private async Task<Token> GetOrRefreshTokenAsync(CancellationToken cancellationToken)
+        private async Task<Token?> GetOrRefreshTokenAsync(CancellationToken cancellationToken)
         {
-            var token = _cache.Get<Token>(token_key);
-            if (token == null)
+            Token? token = _cache.Get<Token>(token_key);
+            if (token is null)
             {
                 token = await RefreshTokenAsync(cancellationToken);
             }
@@ -133,11 +147,15 @@ namespace Csrs.Api.Authentication
             return token;
         }
 
-        private async Task<Token> RefreshTokenAsync(CancellationToken cancellationToken)
+        private async Task<Token?> RefreshTokenAsync(CancellationToken cancellationToken)
         {
-            var token = await _oAuthApiClient.GetRefreshToken(cancellationToken);
-            var options = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(token.ExpiresIn - Buffer) };
-            _cache.Set(token_key, token, options);
+            Token? token = await _oAuthApiClient.GetRefreshToken(cancellationToken);
+            if (token != null)
+            {
+                var options = new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(token.ExpiresIn - Buffer) };
+                _cache.Set(token_key, token, options);
+            }
+
             return token;
         }
     }
