@@ -9,8 +9,9 @@ CrmSvcUtil.exe /url:https://jsb-fams.dev.jag.gov.bc.ca/JSB-FAMS/XRMServices/2011
  /out:%~dp0..\..\backend\Csrs.Api\Models\Dynamics\Models.generated.cs ^
  /il ^
  /namespace:Csrs.Api.Models.Dynamics ^
- /codewriterfilter:CrmSvcUtilExtensions.CodeWriterFilterService,CrmSvcUtilExtensions ^
  /namingservice:CrmSvcUtilExtensions.NamingService,CrmSvcUtilExtensions ^
- /codegenerationservice:CrmSvcUtilExtensions.CodeGenerationService,CrmSvcUtilExtensions
+ /codegenerationservice:CrmSvcUtilExtensions.CodeGenerationService,CrmSvcUtilExtensions ^
+ /codewriterfilter:CrmSvcUtilExtensions.CodeWriterFilterService,CrmSvcUtilExtensions
+
 
 REM PAUSE

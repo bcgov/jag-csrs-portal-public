@@ -8,8 +8,11 @@ namespace Csrs.Api.Models.Mapping
         public PortalAccountProfile()
         {
             CreateMap<PortalAccount, SSG_CsrsParty>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.PartyGuid))
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.PartyId, opt => opt.MapFrom(src => src.PartyGuid))
                 .ForMember(dest => dest.IdentityOtherDetails, opt => opt.MapFrom(src => src.Identity))
+                .ForMember(dest => dest.StateCode, opt => opt.MapFrom(src => State.Active))
+                .ForMember(dest => dest.StatusCode, opt => opt.MapFrom(src => Status.Active))
                 ;
 
             CreateMap<SSG_CsrsParty, PortalAccount>()

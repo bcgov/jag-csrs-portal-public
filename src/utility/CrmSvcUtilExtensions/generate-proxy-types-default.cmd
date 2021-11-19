@@ -6,7 +6,7 @@ PATH=%PATH%;%CORETOOLS%
 copy/Y %~dp0bin\Debug\net48\CrmSvcUtilExtensions.dll %CORETOOLS%
 
 CrmSvcUtil.exe /url:https://jsb-fams.dev.jag.gov.bc.ca/JSB-FAMS/XRMServices/2011/Organization.svc ^
- /out:%~dp0..\..\backend\Csrs.Api\Models\Dynamics\Models.generated.cs ^
+ /out:%~dp0Models.generated.cs ^
  /il ^
  /namespace:Csrs.Api.Models.Dynamics
 

@@ -2,6 +2,7 @@
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CrmSvcUtilExtensions
@@ -65,9 +66,7 @@ namespace CrmSvcUtilExtensions
 
             BuildOptionSets(organizationMetadata.OptionSets, services);
             BuildEntities(organizationMetadata.Entities, services, buffer);
-
-            buffer.Unindent();
-            buffer.AppendLine("}");
+            buffer.UnindentAndAppendLine("}");
 
             //Debugger.Launch();
 
@@ -93,59 +92,34 @@ namespace CrmSvcUtilExtensions
 
         private void BuildCommonTypes(IndentingStringBuilder buffer)
         {
-            //Entity
+            // Entity
+            buffer.AppendLine();
             buffer.AppendLine("public abstract class Entity");
             buffer.AppendLine("{");
             buffer.Indent();
-            buffer.AppendLine("// TODO: fix to map to proper id field like default generated classes");
-            buffer.AppendLine("[JsonPropertyName(\"id\")]");
-            buffer.AppendLine("public Guid? Id { get; set; }");
-            buffer.Unindent();
-            buffer.AppendLine("}");
-
-            // EntityReference
+            buffer.AppendLine("/// <summary>");
+            buffer.AppendLine("/// Backing field for the primary id attribute.");
+            buffer.AppendLine("/// </summary>");
+            buffer.AppendLine("protected Guid _id;");
             buffer.AppendLine();
-            buffer.AppendLine("// TODO: remove EntityReference and use POCO for related entity");
-            buffer.AppendLine("public class EntityReference");
-            buffer.AppendLine("{");
-            buffer.Indent();
-
-            buffer.AppendLine("public EntityReference()");
-            buffer.AppendLine("{");
-            buffer.AppendLine("}");
-
-            buffer.AppendLine("public EntityReference(string logicalName, Guid id)");
-            buffer.AppendLine("{");
-            buffer.Indent();
-            buffer.AppendLine("LogicalName = logicalName;");
-            buffer.AppendLine("Id = id;");
-            buffer.Unindent();
-            buffer.AppendLine("}");
-
-
-            buffer.AppendLine("[JsonPropertyName(\"id\")]");
-            buffer.AppendLine("public Guid? Id { get; set; }");
-            buffer.AppendLine("[JsonPropertyName(\"logicalName\")]");
-            buffer.AppendLine("public string? LogicalName { get; set; }");
-            buffer.AppendLine("[JsonPropertyName(\"name\")]");
-            buffer.AppendLine("public string? Name { get; set; }");
-            buffer.AppendLine("[JsonPropertyName(\"rowVersion\")]");
-            buffer.AppendLine("public string? RowVersion { get; set; }");
-
-            buffer.Unindent();
-            buffer.AppendLine("}");
-
-            // Money
+            buffer.AppendLine("/// <summary>");
+            buffer.AppendLine("/// Primary id alias");
+            buffer.AppendLine("/// </summary>");
+            buffer.AppendLine("public abstract Guid Id { get; set; }");
             buffer.AppendLine();
-            buffer.AppendLine("public class Money");
-            buffer.AppendLine("{");
-            buffer.Indent();
 
-            buffer.AppendLine("[JsonPropertyName(\"value\")]");
-            buffer.AppendLine("public decimal Value { get; set; }");
-
-            buffer.Unindent();
-            buffer.AppendLine("}");
+            buffer.AppendLine("/// <summary>");
+            buffer.AppendLine("/// Logical name statecode.");
+            buffer.AppendLine("/// </summary>");
+            buffer.AppendLine("[JsonPropertyName(\"statecode\")]");
+            buffer.AppendLine("public int StateCode { get; set; }");
+            buffer.AppendLine();
+            buffer.AppendLine("/// <summary>");
+            buffer.AppendLine("/// Logical name statuscode.");
+            buffer.AppendLine("/// </summary>");
+            buffer.AppendLine("[JsonPropertyName(\"statuscode\")]");
+            buffer.AppendLine("public int StatusCode { get; set; }");
+            buffer.UnindentAndAppendLine("}");
         }
 
         private void BuildOptionSets(OptionSetMetadataBase[] optionSetMetadata, IServiceProvider services)
@@ -157,17 +131,30 @@ namespace CrmSvcUtilExtensions
             ICodeWriterFilterService codeWriterFilterService = (ICodeWriterFilterService)services.GetService(typeof(ICodeWriterFilterService));
             INamingService namingService = (INamingService)services.GetService(typeof(INamingService));
 
-            foreach (EntityMetadata entityMetadata in entities.OrderBy(_ => _.LogicalName))
+            foreach (EntityMetadata entity in entities.OrderBy(_ => _.LogicalName))
             {
-                if (codeWriterFilterService.GenerateEntity(entityMetadata, services))
+                if (codeWriterFilterService.GenerateEntity(entity, services))
                 {
-                    BuildEntity(entityMetadata, codeWriterFilterService, namingService, services, buffer);
+                    BuildEntity(entities, entity, codeWriterFilterService, namingService, services, buffer);
                 }
             }
         }
 
+        private void AttachDebugger(Func<bool> predicate)
+        {
+            if (!predicate())
+            {
+                return;
+            }
+            if (!System.Diagnostics.Debugger.IsAttached)
+            {
+                System.Diagnostics.Debugger.Launch();
+            }
+        }
+
         private void BuildEntity(
-            EntityMetadata entityMetadata,
+            EntityMetadata[] entities,
+            EntityMetadata entity,
             ICodeWriterFilterService codeWriterFilterService,
             INamingService namingService,
             IServiceProvider services,
@@ -178,7 +165,7 @@ namespace CrmSvcUtilExtensions
             buffer.AppendLine($"/// <summary>");
             buffer.Append($"/// ");
 
-            var entityDescription = entityMetadata.Description.LocalizedLabels.FirstOrDefault()?.Label;
+            var entityDescription = entity.Description.LocalizedLabels.FirstOrDefault()?.Label;
             if (!string.IsNullOrWhiteSpace(entityDescription))
             {
                 entityDescription = entityDescription.Trim();
@@ -190,30 +177,119 @@ namespace CrmSvcUtilExtensions
                 buffer.Append($"{entityDescription} ", indent: false);
             }
 
-            buffer.AppendLine($"Logical name {entityMetadata.LogicalName}.", indent: false);
+            buffer.AppendLine($"Logical name {entity.LogicalName}.", indent: false);
             buffer.AppendLine($"/// </summary>");
 
-            var entityName = namingService.GetNameForEntity(entityMetadata, services);
+            var entityName = namingService.GetNameForEntity(entity, services);
 
             buffer.AppendLine($"public partial class {entityName} : Entity");
             buffer.AppendLine("{");
             buffer.Indent();
 
-            foreach (var attribute in entityMetadata.Attributes.Where(_ => _.AttributeType != null).OrderBy(_ => _.LogicalName))
+            List<string> attributesNames = new List<string>();
+
+            foreach (var attribute in entity.Attributes.Where(_ => _.AttributeType != null).OrderBy(_ => _.LogicalName))
             {
                 if (codeWriterFilterService.GenerateAttribute(attribute, services))
                 {
-                    BuildAttribute(entityMetadata, attribute, codeWriterFilterService, namingService, services, buffer);
+                    string attributeName = BuildAttribute(entities, entity, attribute, codeWriterFilterService, namingService, services, buffer);
+                    if (!string.IsNullOrEmpty(attributeName))
+                    {
+                        attributesNames.Add(attributeName);
+                    }
                 }
             }
 
-            buffer.Unindent();
-            buffer.AppendLine("}");
+            attributesNames.Add("StateCode");
+            attributesNames.Add("StatusCode");
 
+            buffer.AppendLine("/// <summary>");
+            buffer.AppendLine("/// Contains all the attributes/columns on this class.");
+            buffer.AppendLine("/// </summary>");
+            buffer.Append($"public static readonly System.Linq.Expressions.Expression<Func<{entityName}, object>> AllProperties = _ => new {{ ");
+            for (int i = 0; i < attributesNames.Count; i++)
+            {
+                string attributeName = attributesNames[i];
+                if (i != 0)
+                {
+                    buffer.Append($", ", indent: false);
+                }
+                buffer.Append($"_.{attributeName}", indent: false);
+            }
+            buffer.AppendLine(" };", indent: false);
+            buffer.AppendLine();
+
+            buffer.AppendLine("/// <summary>");
+            buffer.AppendLine("/// Contains all the normal attributes on this entity.");
+            buffer.AppendLine("/// </summary>");
+            buffer.AppendLine("public static class Attributes");
+            buffer.AppendLine("{");
+            buffer.Indent();
+
+            foreach (var attribute in entity.Attributes.OrderBy(_ => _.LogicalName))
+            {
+                string propertyName = attribute.LogicalName;
+                buffer.AppendLine($"public const string {propertyName} = \"{propertyName}\";");
+            }
+            buffer.UnindentAndAppendLine("}");
+
+
+            if (entity.OneToManyRelationships.Length != 0)
+            {
+                buffer.AppendLine("/// <summary>");
+                buffer.AppendLine("/// Contains all the attributes that represent a one to many relationship.");
+                buffer.AppendLine("/// These attributes will be a collection on this entity.");
+                buffer.AppendLine("/// </summary>");
+                buffer.AppendLine("public static class OneToManyRelationships");
+                buffer.AppendLine("{");
+                buffer.Indent();
+            }
+            foreach (var relationship in entity.OneToManyRelationships.OrderBy(_ => _.ReferencedEntityNavigationPropertyName))
+            {
+                string propertyName = relationship.ReferencedEntityNavigationPropertyName;
+                buffer.AppendLine($"public const string {propertyName} = \"{propertyName}\";");
+                if (codeWriterFilterService.GenerateRelationship(relationship, entity, services))
+                {
+                    // todo: generate collection for 
+                }
+            }
+
+            if (entity.ManyToOneRelationships.Length != 0)
+            {
+                buffer.UnindentAndAppendLine("}");
+            }
+
+            if (entity.ManyToOneRelationships.Length != 0)
+            {
+                buffer.AppendLine("/// <summary>");
+                buffer.AppendLine("/// Contains all the attributes that represent a many to one relationship.");
+                buffer.AppendLine("/// These attributes will be a single instance on this entity.");
+                buffer.AppendLine("/// </summary>");
+                buffer.AppendLine("public static class ManyToOneRelationships");
+                buffer.AppendLine("{");
+                buffer.Indent();
+            }
+            foreach (var relationship in entity.ManyToOneRelationships.OrderBy(_ => _.ReferencedEntityNavigationPropertyName))
+            {
+                string propertyName = relationship.ReferencedEntityNavigationPropertyName;
+                buffer.AppendLine($"public const string {propertyName} = \"{propertyName}\";");
+                if (codeWriterFilterService.GenerateRelationship(relationship, entity, services))
+                {
+                    // todo: generate collection for 
+                }
+            }
+
+            if (entity.ManyToOneRelationships.Length != 0)
+            {
+                buffer.UnindentAndAppendLine("}");
+            }
+
+            buffer.UnindentAndAppendLine("}");
         }
 
-        private void BuildAttribute(
-            EntityMetadata entityMetadata,
+        private string BuildAttribute(
+            EntityMetadata[] entities,
+            EntityMetadata entity,
             AttributeMetadata attribute,
             ICodeWriterFilterService codeWriterFilterService,
             INamingService namingService,
@@ -221,24 +297,37 @@ namespace CrmSvcUtilExtensions
             IndentingStringBuilder buffer)
 
         {
+            //AttachDebugger(() => entity.LogicalName == "ssg_csrsfile" && attribute.LogicalName == "ssg_childsupportonorder");
+
             var hasSet = (attribute.IsValidForCreate.GetValueOrDefault() ? true : attribute.IsValidForUpdate.GetValueOrDefault());
             var hasGet = (attribute.IsValidForRead.GetValueOrDefault() ? true : hasSet);
 
             if (!hasGet && !hasSet)
             {
-                return;
+                return string.Empty;
             }
-
-            // if (entity.PrimaryIdAttribute == attributeMetadatum.LogicalName && attributeMetadatum.IsPrimaryId.GetValueOrDefault())
 
             //if (attribute.LogicalName == "statuscode") { System.Diagnostics.Debugger.Launch(); }
             string attributeType = GetAttributeType(attribute.AttributeType.Value);
             if (string.IsNullOrEmpty(attributeType))
             {
-                return;
+                return string.Empty;
             }
 
-            var attributeName = namingService.GetNameForAttribute(entityMetadata, attribute, services);
+            if (attribute.AttributeType.Value == AttributeTypeCode.Lookup)
+            {
+                var lookupAttribute = (LookupAttributeMetadata)attribute;
+
+                var otherEntity = entities.Single(_ => _.LogicalName == lookupAttribute.Targets[0]);
+                if (!codeWriterFilterService.GenerateEntity(otherEntity, services))
+                {
+                    return string.Empty;
+                }
+
+                attributeType = namingService.GetNameForEntity(otherEntity, services);
+            }
+
+            var attributeName = namingService.GetNameForAttribute(entity, attribute, services);
             var attributesDescription = attribute.Description.LocalizedLabels.FirstOrDefault()?.Label;
 
             buffer.AppendLine($"/// <summary>");
@@ -263,8 +352,35 @@ namespace CrmSvcUtilExtensions
                 buffer.AppendLine($"[Obsolete]");
             }
 
-            buffer.AppendLine($"[JsonPropertyName(\"{attribute.LogicalName}\")]");
-            buffer.AppendLine($"public {attributeType}? {attributeName} {{ get; set; }}");
+            if (entity.PrimaryIdAttribute == attribute.LogicalName && attribute.IsPrimaryId.GetValueOrDefault())
+            {
+                buffer.AppendLine("/// <returns>");
+                buffer.AppendLine("/// The primary id value or <see cref=\"System.Guid.Empty\"/> if not set.");
+                buffer.AppendLine("/// </returns>");
+                buffer.AppendLine($"[JsonPropertyName(\"{attribute.LogicalName}\")]");
+                buffer.AppendLine($"public {attributeType}? {attributeName} ");
+                buffer.AppendLine("{");
+                buffer.Indent();
+                buffer.AppendLine("get { return _id; }");
+                buffer.AppendLine("set { _id = value.HasValue ? value.Value : System.Guid.Empty; }");
+                buffer.UnindentAndAppendLine("}");
+                buffer.AppendLine();
+
+                // implement the primary key alias
+                buffer.AppendLine($"/// <summary>");
+                buffer.AppendLine($"/// Primary Id alias. Logical name {attribute.LogicalName}.");
+                buffer.AppendLine($"/// </summary>");
+                buffer.AppendLine($"public override Guid Id {{ get {{ return _id; }} set {{ _id = value; }} }}");
+            }
+            else
+            {
+                buffer.AppendLine($"[JsonPropertyName(\"{attribute.LogicalName}\")]");
+                buffer.AppendLine($"public {attributeType}? {attributeName} {{ get; set; }}");
+            }
+
+            buffer.AppendLine();
+
+            return attributeName;
         }
 
         private string GetAttributeType(AttributeTypeCode attributeTypeCode)
@@ -274,24 +390,27 @@ namespace CrmSvcUtilExtensions
                 case AttributeTypeCode.Boolean: return "bool"; // typeof(bool)
                 case AttributeTypeCode.ManagedProperty: return string.Empty; // typeof(BooleanManagedProperty) },
                 case AttributeTypeCode.CalendarRules: return string.Empty; // typeof(object) },
-                case AttributeTypeCode.Customer: return "EntityReference"; // , typeof(EntityReference) },
+                case AttributeTypeCode.Customer: return string.Empty; // , typeof(EntityReference) },
                 case AttributeTypeCode.DateTime: return "DateTime"; // typeof(DateTime) },
                 case AttributeTypeCode.Decimal: return "decimal"; // typeof(decimal) },
                 case AttributeTypeCode.Double: return "double"; // typeof(double) },
                 case AttributeTypeCode.Integer: return "int"; // typeof(int) },
                 case AttributeTypeCode.EntityName: return "string"; // typeof(string) },
                 case AttributeTypeCode.BigInt: return "long"; // typeof(long) },
-                case AttributeTypeCode.Lookup: return "EntityReference"; // typeof(EntityReference) },
+                case AttributeTypeCode.Lookup: return EntityReference; // typeof(EntityReference) },
                 case AttributeTypeCode.Memo: return "string"; // typeof(string) },
-                case AttributeTypeCode.Money: return "Money"; // typeof(Money) },
-                case AttributeTypeCode.Owner: return "EntityReference"; // typeof(EntityReference) },
+                case AttributeTypeCode.Money: return string.Empty; // typeof(Money) },
+                case AttributeTypeCode.Owner: return string.Empty; // typeof(EntityReference) },
                 case AttributeTypeCode.String: return "string"; // typeof(string) },
                 case AttributeTypeCode.Uniqueidentifier: return "System.Guid"; // typeof(Guid) }
                 case AttributeTypeCode.Status: return "int";
                 case AttributeTypeCode.State: return "int";
                 default:
-                    return string.Empty;
+                    //return string.Empty;
+                    return "string";
             }
         }
+
+        private const string EntityReference = "EntityReference";
     }
 }

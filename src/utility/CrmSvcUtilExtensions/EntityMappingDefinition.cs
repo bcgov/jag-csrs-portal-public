@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace CrmSvcUtilExtensions
+﻿namespace CrmSvcUtilExtensions
 {
     public class EntityMappingDefinition : LogicalNameMappingDefinition
     {

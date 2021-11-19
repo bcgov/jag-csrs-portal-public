@@ -25,6 +25,12 @@ namespace CrmSvcUtilExtensions
             }
         }
 
+        public void UnindentAndAppendLine(string value)
+        {
+            Unindent();
+            AppendLine(value);
+        }
+
         public void Append(string value, bool indent = true)
         {
             if (indent)

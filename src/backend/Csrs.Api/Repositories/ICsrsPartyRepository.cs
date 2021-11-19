@@ -2,8 +2,7 @@
 
 namespace Csrs.Api.Repositories
 {
-    public interface ICsrsPartyRepository : IRepository<SSG_CsrsParty>
+    public interface ICsrsPartyRepository : IInsertRepository<SSG_CsrsParty>, IUpdateRepository<SSG_CsrsParty>
     {
-
     }
 }

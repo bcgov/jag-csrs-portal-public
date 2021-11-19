@@ -14,7 +14,7 @@ namespace Csrs.Api.Repositories
         public static void AddRepositories(this WebApplicationBuilder builder)
         {
             var configuration = builder.Configuration.Get<CsrsConfiguration>();
-            var oAuthOptions = configuration?.OAuth;
+            OAuthConfiguration? oAuthOptions = configuration?.OAuth;
 
             if (oAuthOptions is null || oAuthOptions.ResourceUrl is null)
             {
@@ -23,12 +23,14 @@ namespace Csrs.Api.Repositories
 
             var services = builder.Services;
 
+            services.AddSingleton(oAuthOptions);
+
             services.AddMemoryCache();
 
             // Add OAuth Middleware
             services.AddTransient<OAuthHandler>();
 
-            // Register IOAuthApiClient
+            // Register IOAuthApiClient and ODataClientSettings
             services.AddHttpClient<IOAuthApiClient, OAuthApiClient>();
 
             // Register httpClient for OdataClient with OAuthHandler
@@ -45,7 +47,7 @@ namespace Csrs.Api.Repositories
             // Add other Services
             services.AddTransient<ITokenService, TokenService>();
 
-            services.AddTransient<IFileRepository, CsrsFileRepository>();
+            services.AddTransient<ICsrsFileRepository, CsrsFileRepository>();
             services.AddTransient<ICsrsPartyRepository, CsrsPartyRepository>();
         }
     }

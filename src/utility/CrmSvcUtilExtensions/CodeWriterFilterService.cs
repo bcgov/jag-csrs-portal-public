@@ -13,16 +13,22 @@ namespace CrmSvcUtilExtensions
 
         public CodeWriterFilterService(ICodeWriterFilterService defaultService)
         {
-            //if (!System.Diagnostics.Debugger.IsAttached)
-            //{
-            //    System.Diagnostics.Debugger.Launch();
-            //}
-
             _service = defaultService;
         }
 
         bool ICodeWriterFilterService.GenerateAttribute(AttributeMetadata attributeMetadata, IServiceProvider services)
         {
+            if (attributeMetadata.AttributeType == null)
+            {
+                return false; // no type
+            }
+
+            var attributeTypeCode = attributeMetadata.AttributeType.Value;
+            if (attributeTypeCode == AttributeTypeCode.State || attributeTypeCode == AttributeTypeCode.Status)
+            {
+                return false; // on base class
+            }
+
             // global skip attribute list?
             var skip = _mappings.Attributes.Any(_ => _.LogicalName == attributeMetadata.LogicalName && _.Skip);
             if (skip) return false;
