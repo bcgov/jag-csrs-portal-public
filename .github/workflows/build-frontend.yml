@@ -34,8 +34,6 @@ jobs:
     runs-on: ubuntu-20.04
     environment: ${{ github.event.inputs.env }}
     env:
-      BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
-      BASIC_AUTH_PASS: ${{ secrets.BASIC_AUTH_PASS }}
       app: ${{github.event.inputs.app}}
       env: ${{github.event.inputs.env}}
       app_from_gh_secret: ${{ secrets.APP_NAME }}
