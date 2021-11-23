@@ -90,7 +90,7 @@ jobs:
         env:
           COMPOSE_DOCKER_CLI_BUILD: 1
           DOCKER_BUILDKIT: 1
-          CONTEXT: .
+          CONTEXT: ./src/frontend/csrs-portal
           #IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-tools/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
           IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{secrets.OPENSHIFT_ENV_TAG}}/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
         run: |
