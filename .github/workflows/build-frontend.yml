@@ -82,5 +82,6 @@ jobs:
 
           echo "Release Application: ${{ env.app }}"
           echo "Release Environment: ${{ env.env }}"
+          echo "Release Environment from secret: ${{ env.env_from_gh_secret }}"
           echo "Release Version: ${{ env.releaseVersion }}"
           echo "Release Git Sha: ${{env.gitsha}}"
