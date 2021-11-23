@@ -4,12 +4,21 @@
 name: Main - Build Image and Push to Openshift Registry for Dev Deployment
 
 # Controls when the workflow will run
-on:    
+on:
+  #Want to trigger it only on successful merge on main
+  push:
+    branches:
+      - 'portal_build_deploy'
+      #- 'main' 
+  #pull_request:
+  #  branches:
+  #    - 'main'  
+  
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
         app:
-            description: 'jag-csrs-portal-frontend'    
+            description: 'App Name (jag-csrs-frontend)'    
             required: true
             default: jag-csrs-frontend
         env:
@@ -29,13 +38,14 @@ jobs:
       BASIC_AUTH_PASS: ${{ secrets.BASIC_AUTH_PASS }}
       app: ${{github.event.inputs.app}}
       env: ${{github.event.inputs.env}}
+      app_from_gh_secret: ${{ secrets.APP_NAME }}
+      env_from_gh_secret: ${{secrets.OPENSHIFT_ENV_TAG}}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Git Checkout
         uses: actions/checkout@v2
-      
       
       # Get Git latest short Sha# from the release branch used. This Sha# will be used in image tagging as well as DC Pod labelling.
       - name: Get git commit short sha
@@ -44,8 +54,19 @@ jobs:
           shortSha=$(echo $(git rev-parse --short HEAD) | cut -c1-7)
           echo "gitsha=$shortSha" >> $GITHUB_ENV
       
+      - name: env variables
 
-      - name: print env variables for verification/eye inspection that nothing is empty
+        run: |
+
+          if [[ -z "$app" ]]; then
+            echo "app=$app_from_gh_secret" >> $GITHUB_ENV
+          fi  
+
+          if [[ -z "$env" ]]; then
+            echo "env=$env_from_gh_secret" >> $GITHUB_ENV
+          fi  
+          
+      - name: print env variables
 
         run: |
 
@@ -92,11 +113,10 @@ jobs:
       #The steps below would not work until some additional role binding work is done
       #on corresponding namesapce. However at present none of us has that privilege.
       # Labels the deployment config of the application with release version number to spin up the pods labelled in same version.
-      #- name: Labelling DC to release version
-      #  env:
-      #    releaseVersion: ${{ env.releaseVersion }}
-      #    appName: ${{ env.app }}
-      #    openshiftEnvNamespace: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
-      #  run: |
-      #    oc patch dc ${appName} -n ${openshiftEnvNamespace} --patch '{"spec":{"template":{"metadata":{"labels":{"version":"${{ env.app }}.${{ env.gitsha }}"}}}}}'
-
+      - name: Labelling DC to release version
+        env:
+          releaseVersion: ${{ env.releaseVersion }}
+          appName: ${{ env.app }}
+          openshiftEnvNamespace: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
+        run: |
+          oc patch dc ${appName} -n ${openshiftEnvNamespace} --patch '{"spec":{"template":{"metadata":{"labels":{"version":"${{ env.gitsha }}"}}}}}'
