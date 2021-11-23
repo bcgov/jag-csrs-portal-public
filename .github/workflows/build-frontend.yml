@@ -54,46 +54,22 @@ jobs:
           shortSha=$(echo $(git rev-parse --short HEAD) | cut -c1-7)
           echo "gitsha=$shortSha" >> $GITHUB_ENV
       
-            
-      - name: gather appropriate values
-        run: |
-          env:
+      - name: env variables
+        env:
             app: ${{github.event.inputs.app}}
             env: ${{github.event.inputs.env}}
             app_from_gh_secret: ${{ secrets.APP_NAME }}
             env_from_gh_secret: ${{secrets.OPENSHIFT_ENV_TAG}}
-          if [$env.app == ""]; then
-            app=$env.app_from_gh_secret
+        run: |
+
+          if ["$app" == ""]; then
+            app=$app_from_gh_secret
           echo "app=$app" >> $GITHUB_ENV
-          if [$env.env == ""]; then
-            env=$env.env_from_gh_secret
+          if ["$env" == ""]; then
+            env=$env_from_gh_secret
           echo "env=$env" >> $GITHUB_ENV
 
           echo "Release Application: ${{ env.app }}"
           echo "Release Environment: ${{ env.env }}"
           echo "Release Version: ${{ env.releaseVersion }}"
           echo "Release Git Sha: ${{env.gitsha}}"
-
-      #Login to OpenShift Container Repository
-      - name: Login to OpenShift Container Repository
-        uses: docker/login-action@v1
-        with:
-          registry: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}
-          username: ${{secrets.OPENSHIFT_SA_USERNAME}}
-          password: ${{secrets.OPENSHIFT_SA_PASSWORD}}
-
-
-      #Build and push image to OpenShift Image stream
-      - name: Build & Push Image to Openshift Image Stream
-        env:
-          COMPOSE_DOCKER_CLI_BUILD: 1
-          DOCKER_BUILDKIT: 1
-          CONTEXT: ./src/frontend/csrs-portal
-          #IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-tools/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
-          #IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{secrets.OPENSHIFT_ENV_TAG}}/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
-          IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{env.env}}/${{env.app}}:${{env.env}} 
-        run: |
-          docker build \
-            --tag ${IMAGE} \
-            ${CONTEXT}
-            docker push ${IMAGE}
