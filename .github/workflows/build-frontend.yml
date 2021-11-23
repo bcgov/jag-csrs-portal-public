@@ -76,6 +76,9 @@ jobs:
             echo "env=$env" >> $GITHUB_ENV
           fi  
           
+      - name: print env variables
+
+        run: |
 
           echo "Release Application: ${{ env.app }}"
           echo "Release Environment: ${{ env.env }}"
