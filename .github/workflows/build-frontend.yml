@@ -17,7 +17,7 @@ on:
         app:
             description: 'App Name (jag-csrs-portal-public)'    
             required: true
-            default: jag_csrs
+            default: jag_csrs_frontend
         env:
             description: 'Image Target Env'     
             required: true
@@ -96,7 +96,8 @@ jobs:
           CONTEXT: ./src/frontend/csrs-portal
           #IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-tools/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
           #IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{secrets.OPENSHIFT_ENV_TAG}}/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
-          IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{env.env}}/${{env.app}}:${{env.env}}
+          #IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{env.env}}/${{env.app}}:${{env.env}}
+          IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-tools/${{env.app}}:${{env.env}}
         run: |
           docker build \
             --tag ${IMAGE} \
