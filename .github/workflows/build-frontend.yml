@@ -63,17 +63,11 @@ jobs:
         run: |
 
           if [[ -z "$app" ]]; then
-            echo "app=$app_from_gh_secret"
             echo "app=$app_from_gh_secret" >> $GITHUB_ENV
-          else
-            echo "app=$app" >> $GITHUB_ENV
           fi  
 
           if [[ -z "$env" ]]; then
-            echo "env=$env_from_gh_secret"
             echo "env=$env_from_gh_secret" >> $GITHUB_ENV
-          else
-            echo "env=$env" >> $GITHUB_ENV
           fi  
           
       - name: print env variables
@@ -82,6 +76,31 @@ jobs:
 
           echo "Release Application: ${{ env.app }}"
           echo "Release Environment: ${{ env.env }}"
-          echo "Release Environment from secret: ${{ env.env_from_gh_secret }}"
+          #echo "Release Environment from secret: ${{ env.env_from_gh_secret }}"
           echo "Release Version: ${{ env.releaseVersion }}"
           echo "Release Git Sha: ${{env.gitsha}}"
+       #Login to OpenShift Container Repository
+      - name: Login to OpenShift Container Repository
+        uses: docker/login-action@v1
+        with:
+          registry: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}
+          username: ${{secrets.OPENSHIFT_SA_USERNAME}}
+          password: ${{secrets.OPENSHIFT_SA_PASSWORD}}
+
+
+      #Build and push image to OpenShift Image stream
+      - name: Build & Push Image to Openshift Image Stream
+        env:
+          COMPOSE_DOCKER_CLI_BUILD: 1
+          DOCKER_BUILDKIT: 1
+          CONTEXT: ./src/frontend/csrs-portal
+          #IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-tools/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
+          #IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{secrets.OPENSHIFT_ENV_TAG}}/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
+          #IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{env.env}}/${{env.app}}:${{env.env}}
+          IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{env.env}}/${{env.app}}:${{env.gitsha}}"
+        run: |
+          docker build \
+            --tag ${IMAGE} \
+            ${CONTEXT}
+            docker push ${IMAGE}         
+          
