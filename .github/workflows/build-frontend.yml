@@ -9,16 +9,16 @@ on:
     branches:
       - '*'
   # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-    inputs:
-        app:
-            description: 'App Name (jag-csrs-portal-public)'    
-            required: true
-            default: jag-csrs-portal-public
-        env:
-            description: 'Image Target Env'     
-            required: true
-            default: 'dev'
+  #workflow_dispatch:
+  #  inputs:
+  #      app:
+  #          description: 'App Name (jag-csrs-portal-public)'    
+  #          required: true
+  #          default: jag-csrs-portal-public
+  #      env:
+  #          description: 'Image Target Env'     
+  #          required: true
+  #          default: 'dev'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -51,27 +51,50 @@ jobs:
           shortSha=$(echo $(git rev-parse --short HEAD) | cut -c1-7)
           echo "gitsha=$shortSha" >> $GITHUB_ENV
       
-      # Prints vital release paramters used
-      - name: Print Release Variables
-        run: |
-          echo "Release Application: ${{ github.event.inputs.app }}"
-          echo "Release Environment: ${{ github.event.inputs.env }}"
-          echo "Release Version: ${{ env.releaseVersion }}"
-          echo "Release Git Sha: ${{env.gitsha}}"
+      # Prints release parameters 
+      #- name: Print Release Variables
+      #  run: |
+      #    echo "Release Application: ${{ github.event.inputs.app }}"
+      #    echo "Release Environment: ${{ github.event.inputs.env }}"
+      #    echo "Release Version: ${{ env.releaseVersion }}"
+      #    echo "Release Git Sha: ${{env.gitsha}}"
 
         
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v1
+      #- name: Set up Docker Buildx
+      #  id: buildx
+      #  uses: docker/setup-buildx-action@v1
 
-      - name: Build and tag
-        id: docker_build
-        uses: docker/build-push-action@v2
+      #- name: Build and tag
+      #  id: docker_build
+      #  uses: docker/build-push-action@v2
+      #  with:
+      #    context: ./src/frontend/csrs-portal
+      #    file: ./Dockerfile
+      #    push: true
+      #    #tags: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ github.event.inputs.env }}/${{ github.event.inputs.app }}:latest"
+      #    tags: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{secrets.OPENSHIFT_ENV_TAG}}/${{ secrets.APP_NAME }}:latest"
+      #- name: Image digest
+      #  run: echo ${{ steps.docker_build.outputs.digest }}
+
+      #Login to OpenShift Container Repository
+      - name: Login to OpenShift Container Repository
+        uses: docker/login-action@v1
         with:
-          context: ./src/frontend/csrs-portal
-          file: ./Dockerfile
-          #push: true
-          tags: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ github.event.inputs.env }}/${{ github.event.inputs.app }}:latest"
+          registry: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}
+          username: ${{secrets.OPENSHIFT_SA_USERNAME}}
+          password: ${{secrets.OPENSHIFT_SA_PASSWORD}}
 
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
+
+      #Build and push image to OpenShift Image stream
+      - name: Build & Push Image to Openshift Image Stream
+        env:
+          COMPOSE_DOCKER_CLI_BUILD: 1
+          DOCKER_BUILDKIT: 1
+          CONTEXT: .
+          #IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-tools/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
+          IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-{{secrets.OPENSHIFT_ENV_TAG}}/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
+        run: |
+          docker build \
+            --tag ${IMAGE} \
+            ${CONTEXT}
+            docker push ${IMAGE}
