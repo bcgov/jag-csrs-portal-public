@@ -57,18 +57,16 @@ jobs:
             
       - name: gather appropriate values
         run: |
-          if [${{github.event.inputs.app}} != ""]; then
-            app=${{github.event.inputs.app}}
-          else
-            app = ${{ secrets.APP_NAME }}
-          fi
+          env:
+            app: ${{github.event.inputs.app}}
+            env: ${{github.event.inputs.env}}
+            app_from_gh_secret: ${{ secrets.APP_NAME }}
+            env_from_gh_secret: ${{secrets.OPENSHIFT_ENV_TAG}}
+          if [$env.app == ""]; then
+            app=$env.app_from_gh_secret
           echo "app=$app" >> $GITHUB_ENV
-          if [${{github.event.inputs.env}} != ""]; then
-            env=${{github.event.inputs.env}}
-            
-          else
-            env=${{secrets.OPENSHIFT_ENV_TAG}}
-          fi
+          if [$env.env == ""]; then
+            env=$env.env_from_gh_secret
           echo "env=$env" >> $GITHUB_ENV
 
           echo "Release Application: ${{ env.app }}"
