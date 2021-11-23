@@ -17,7 +17,7 @@ on:
         app:
             description: 'App Name (jag-csrs-portal-public)'    
             required: true
-            default: jag_csrs_frontend
+            default: jag-csrs-frontend
         env:
             description: 'Image Target Env'     
             required: true
