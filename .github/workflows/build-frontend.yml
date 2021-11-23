@@ -7,7 +7,7 @@ name: Main - Build Image and Push to Openshift Registry for Dev Deployment
 on:
   push:
     branches:
-      - '*'
+      - 'portal_build_deploy'
   pull_request:
     branches:
       - 'main'    
@@ -33,6 +33,10 @@ jobs:
     env:
       BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
       BASIC_AUTH_PASS: ${{ secrets.BASIC_AUTH_PASS }}
+      app: ${{github.event.inputs.app}}
+      env: ${{github.event.inputs.env}}
+      app_from_gh_secret: ${{ secrets.APP_NAME }}
+      env_from_gh_secret: ${{secrets.OPENSHIFT_ENV_TAG}}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -55,11 +59,7 @@ jobs:
           echo "gitsha=$shortSha" >> $GITHUB_ENV
       
       - name: env variables
-        env:
-            app: ${{github.event.inputs.app}}
-            env: ${{github.event.inputs.env}}
-            app_from_gh_secret: ${{ secrets.APP_NAME }}
-            env_from_gh_secret: ${{secrets.OPENSHIFT_ENV_TAG}}
+
         run: |
 
           if ["$app" == ""]; then
