@@ -5,9 +5,10 @@ name: Main - Build Image and Push to Openshift Registry for Dev Deployment
 
 # Controls when the workflow will run
 on:
-  push:
-    branches:
-      - 'portal_build_deploy'
+  #For initial testing 
+  #push:
+  #  branches:
+  #    - '*'
   pull_request:
     branches:
       - 'main'    
@@ -114,8 +115,10 @@ jobs:
           #openshift_token: ${{secrets.OPENSHIFT_DEPLOYER_SA_PASSWORD}}
           openshift_token: ${{secrets.OPENSHIFT_DEFAULT_SA_TOKEN}}
           namespace: ${OPENSHIFT_NAMESPACE}
-        
-        # Labels the deployment config of the application with release version number to spin up the pods labelled in same version.
+      
+      #The steps below would not work until some additional role binding work is done
+      #on corresponding namesapce. However at present none of us has that privilege.
+      # Labels the deployment config of the application with release version number to spin up the pods labelled in same version.
       - name: Labelling DC to release version
         env:
           releaseVersion: ${{ env.releaseVersion }}
