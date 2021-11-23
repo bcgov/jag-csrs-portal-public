@@ -1,0 +1,74 @@
+# This is the main workflow that creates a new image 
+
+
+name: Main - Build Image and Push to Openshift Registry for Dev Deployment
+
+# Controls when the workflow will run
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+        app:
+            description: 'App Name (jag-csrs-portal-public)'    
+            required: true
+            default: jag-csrs-portal-public
+        env:
+            description: 'Image Target Env'     
+            required: true
+            default: 'dev'
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build-push-image:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-20.04
+    environment: ${{ github.event.inputs.env }}
+    env:
+      BASIC_AUTH_USER: ${{ secrets.BASIC_AUTH_USER }}
+      BASIC_AUTH_PASS: ${{ secrets.BASIC_AUTH_PASS }}
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Git Checkout
+        uses: actions/checkout@v2
+      
+      # Get the version number which is prefixed with the Github release branches in format release/{version}
+      - name: Get Release Version
+        run: |
+          branch=${GITHUB_REF##*/}
+          version=$(echo $branch | cut -d "/" -f2-)
+          echo "releaseVersion=$version" >> $GITHUB_ENV
+      
+      # Get Git latest short Sha# from the release branch used. This Sha# will be used in image tagging as well as DC Pod labelling.
+      - name: Get git commit short sha
+        id: sha
+        run: |
+          shortSha=$(echo $(git rev-parse --short HEAD) | cut -c1-7)
+          echo "gitsha=$shortSha" >> $GITHUB_ENV
+      
+      # Prints vital release paramters used
+      - name: Print Release Variables
+        run: |
+          echo "Release Application: ${{ github.event.inputs.app }}"
+          echo "Release Environment: ${{ github.event.inputs.env }}"
+          echo "Release Version: ${{ env.releaseVersion }}"
+          echo "Release Git Sha: ${{env.gitsha}}"
+
+        
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and tag
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./src/frontend/csrs-portal
+          file: ./Dockerfile
+          #push: true
+          tags: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ github.event.inputs.env }}/${{ github.event.inputs.app }}:${{env.gitsha}}"
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
