@@ -113,10 +113,9 @@ jobs:
       #The steps below would not work until some additional role binding work is done
       #on corresponding namesapce. However at present none of us has that privilege.
       # Labels the deployment config of the application with release version number to spin up the pods labelled in same version.
-      - name: Labelling DC to release version
-        env:
-          releaseVersion: ${{ env.releaseVersion }}
-          appName: ${{ env.app }}
-          openshiftEnvNamespace: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
-        run: |
-          oc patch dc ${appName} -n ${openshiftEnvNamespace} --patch '{"spec":{"template":{"metadata":{"labels":{"version":"${{ env.gitsha }}"}}}}}'
+      #- name: Labelling DC to release version
+      #  env:
+      #    appName: ${{ env.app }}
+      #    openshiftEnvNamespace: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
+      #  run: |
+      #    oc patch dc ${appName} -n ${openshiftEnvNamespace} --patch '{"spec":{"template":{"metadata":{"labels":{"version":"${{ env.gitsha }}"}}}}}'
