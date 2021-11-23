@@ -107,10 +107,10 @@ jobs:
         uses: redhat-actions/oc-login@v1
         env:
           OPENSHIFT_NAMESPACE: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
-          OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEFAULT_SA_USERNAME}}
+          OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEPLOYER_SA_USERNAME}}
         with:
           openshift_server_url: ${{secrets.OPENSHIFT_SERVER_URL}}
-          openshift_token: ${{secrets.OPENSHIFT_DEFAULT_SA_TOKEN}}
+          openshift_token: ${{secrets.OPENSHIFT_DEPLOYER_SA_PASSWORD}}
           namespace: ${OPENSHIFT_NAMESPACE}
         
         # Labels the deployment config of the application with release version number to spin up the pods labelled in same version.
