@@ -26,7 +26,7 @@ export class AppConfigService {
 
   private BCE_ID_DEFAULT =
     'https://bceid.gov.bc.ca/' as const;
-  
+
   constructor(private http: HttpClient) { }
 
   public loadAppConfig(): Observable<any> {
