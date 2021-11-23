@@ -63,10 +63,12 @@ jobs:
         run: |
 
           if ["$app" == ""]; then
+            echo "app=$app_from_gh_secret"
             app=$app_from_gh_secret
           fi  
           echo "app=$app" >> $GITHUB_ENV
           if ["$env" == ""]; then
+            echo "env=$env_from_gh_secret"
             env=$env_from_gh_secret
           fi  
           echo "env=$env" >> $GITHUB_ENV
