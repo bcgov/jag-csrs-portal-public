@@ -17,7 +17,7 @@ on:
         app:
             description: 'App Name (jag-csrs-portal-public)'    
             required: true
-            default: jag-csrs-portal-public
+            default: jag_csrs
         env:
             description: 'Image Target Env'     
             required: true
@@ -70,10 +70,7 @@ jobs:
             env=${{secrets.OPENSHIFT_ENV_TAG}}
           fi
           echo "env=$env" >> $GITHUB_ENV
-      #
-      # Prints release parameters 
-      - name: Print Release Variables
-        run: |
+
           echo "Release Application: ${{ env.app }}"
           echo "Release Environment: ${{ env.env }}"
           echo "Release Version: ${{ env.releaseVersion }}"
