@@ -7,6 +7,11 @@
             Add("SPLUNK_URL", $"{nameof(CsrsConfiguration.Splunk)}:{nameof(SplunkConfiguration.Url)}");
             Add("SPLUNK_TOKEN", $"{nameof(CsrsConfiguration.Splunk)}:{nameof(SplunkConfiguration.Token)}");
             Add("SPLUNK_VALIDATE_SERVER_CERTIFICATE", $"{nameof(CsrsConfiguration.Splunk)}:{nameof(SplunkConfiguration.ValidatServerCertificate)}");
+
+            Add("ZIPKIN_URL", $"{nameof(CsrsConfiguration.Tracing)}:{nameof(TracingConfiguration.Zipkin)}:{nameof(ZipkinConfiguration.Url)}");
+
+            Add("JAEGER_HOST", $"{nameof(CsrsConfiguration.Tracing)}:{nameof(TracingConfiguration.Jaeger)}:{nameof(JaegerConfiguration.Host)}");
+            Add("JAEGER_PORT", $"{nameof(CsrsConfiguration.Tracing)}:{nameof(TracingConfiguration.Jaeger)}:{nameof(JaegerConfiguration.Port)}");
         }
 
         /// <summary>
@@ -16,8 +21,8 @@
         /// <param name="appKey"></param>
         private void Add(string variable, string appKey)
         {
-            if (variable == null) throw new ArgumentNullException(nameof(variable));
-            if (appKey == null) throw new ArgumentNullException(nameof(appKey));
+            if (variable is null) throw new ArgumentNullException(nameof(variable));
+            if (appKey is null) throw new ArgumentNullException(nameof(appKey));
 
             // note the Load method may be called multiple times if before the
             // application builder Build method is called, the configuration is requested
@@ -25,7 +30,7 @@
             if (!Data.ContainsKey(appKey))
             {
                 var value = Environment.GetEnvironmentVariable(variable);
-                if (value != null)
+                if (value is not null)
                 {
                     Data.Add(appKey, value);
                 }

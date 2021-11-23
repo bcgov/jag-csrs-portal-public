@@ -1,17 +1,19 @@
-using Csrs.Api.Configuration;
-using Csrs.Api.Health;
 using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddCsrsEnvironmentVariables();
 
+builder.AddJwtBearerAuthentication();
 builder.UseSerilog();
 builder.AddHealthChecks();
+builder.AddInstrumentation();
+builder.AddRepositories();
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 builder.Services.AddMediatR(typeof(Program));
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

@@ -10,39 +10,6 @@
   color: theme-palette(blue);
   padding-bottom: 20px;
 }
-/*
-h3 {
-  font-size: 1.575em;
-  line-height: 1.4em;
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: theme-palette(blue);
-  text-align: left;
-}
-
-h4 {
-  font-size: 1.2em;
-  line-height: 1.1em;
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: theme-palette(blue);
-}
-
-.lead {
-  font-size: 1.1em;
-  margin-bottom: 20px;
-  line-height: 1.1em;
-}
-*/
-/*
-div.landing-summary {
-  background: url("/assets/landing-page-background.jpg") no-repeat !important;
-  -webkit-background-size: cover;
-  -moz-background-size: cover;
-  -o-background-size: cover;
-  background-size: cover;
-}
-*/
 .summary-header-links {
   list-style: none;
   margin-bottom: 0;
@@ -64,9 +31,6 @@ div.landing-summary {
   color: #FCBA19;
   display: none;
 }
-
-
-
 
 @media (min-width: 768px) {
   .divider {
@@ -370,11 +334,11 @@ img {
 
   .landing-card + .landing-card {
     border-left: none;
-    border-top: solid 1px theme-palette(grey, light);
+    border-top: solid 1px white;
   }
 
   .landing-card:last-child {
-    border-bottom: solid 1px theme-palette(grey, light);
+    border-bottom: solid 1px white;
   }
 
   .landing-card.info {
@@ -699,9 +663,4 @@ mat-grid-tile.mat-figure {
 .toolTipIcon{
   color:rgba(0, 102, 143, 0.733);
 }
-.mat-tooltip {
-  font-size: 15px;
-  color: black !important;
-  background-color: white;
-  border: 4px solid orange;
-}
+
