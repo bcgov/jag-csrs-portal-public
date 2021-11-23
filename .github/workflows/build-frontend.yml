@@ -71,7 +71,7 @@ jobs:
           context: ./src/frontend/csrs-portal
           file: ./Dockerfile
           #push: true
-          tags: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ github.event.inputs.env }}/${{ github.event.inputs.app }}:${{env.gitsha}}"
+          tags: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ github.event.inputs.env }}/${{ github.event.inputs.app }}:latest"
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
