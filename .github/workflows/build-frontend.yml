@@ -92,7 +92,7 @@ jobs:
           DOCKER_BUILDKIT: 1
           CONTEXT: .
           #IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-tools/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
-          IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-{{secrets.OPENSHIFT_ENV_TAG}}/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
+          IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{secrets.OPENSHIFT_ENV_TAG}}/jag-csrs:${{secrets.OPENSHIFT_ENV_TAG}}
         run: |
           docker build \
             --tag ${IMAGE} \
