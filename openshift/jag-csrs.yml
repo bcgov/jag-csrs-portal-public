@@ -160,5 +160,5 @@ objects:
       targetPort: http
     tls:
       termination: edge
-      insecureEdgeTerminationPolicy: None
+      insecureEdgeTerminationPolicy: Redirect
       wildcardPolicy: None
