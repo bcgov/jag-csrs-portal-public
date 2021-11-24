@@ -76,6 +76,8 @@ objects:
       metadata:
         labels:
           name: ${COMPONENT_NAME}
+          app.kubernetes.io/instance: ${COMPONENT_NAME}
+          app.openshift.io/runtime: angularjs
       spec:
         containers:
           # due to permission issue not using tools space; dev is pulling from dev
