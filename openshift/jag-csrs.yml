@@ -153,7 +153,6 @@ objects:
     haproxy.router.openshift.io/balance: roundrobin
   spec:
     host: ${ROUTE_PREFIX}-${OC_NAMESPACE}-${OC_ENV}.${DNS}
-    #${ROUTE_PREFIX}-${OC_NAMESPACE}-${OC_ENV}.${DNS}
     to:
       kind: Service
       name: ${COMPONENT_NAME}
