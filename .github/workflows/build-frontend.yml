@@ -5,10 +5,10 @@ name: Main - Build Image and Push to Openshift Registry for Dev Deployment
 
 # Controls when the workflow will run
 on:
-  #Want to trigger it on successful merge on main
-  #push:
-  #  branches:
-  #     - 'main' 
+  # Trigger the this workflow on push/merge on main
+  push:
+    branches:
+      - 'main' 
   
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -91,7 +91,7 @@ jobs:
             ${CONTEXT}
             docker push ${IMAGE}         
           
-      #Login to Openshift using OC SA and Token of respective env. for Pod labelling
+      #Login to Openshift using OC SA and Token of respective env.
       - name: Authenticate OC Env Specific SA
         uses: redhat-actions/oc-login@v1
         env:
@@ -104,9 +104,10 @@ jobs:
           openshift_token: ${{secrets.OPENSHIFT_DEFAULT_SA_TOKEN}}
           namespace: ${OPENSHIFT_NAMESPACE}
       
-      #The steps below would not work until some additional role binding work is done
-      #on corresponding namesapce. However at present none of us has that privilege.
-      # Labels the deployment config of the application with release version number to spin up the pods labelled in same version.
+      # The steps below would not work until some additional role binding work is done
+      # On corresponding namesapce. However at present none of us has that privilege.
+      # Versions the deployment config of the application with release version number - 
+      # This change will trigger a deployment 
       #- name: Labelling DC to release version
       #  env:
       #    appName: ${{ env.app }}
