@@ -5,11 +5,10 @@ name: Main - Build Image and Push to Openshift Registry for Dev Deployment
 
 # Controls when the workflow will run
 on:
-  #Want to trigger it only on successful merge on main
-  push:
-    branches:
-      - 'portal_build_deploy'
-      #- 'main' 
+  #Want to trigger it on successful merge on main
+  #push:
+  #  branches:
+  #     - 'main' 
   
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
