@@ -89,20 +89,21 @@ jobs:
           docker build \
             --tag ${IMAGE} \
             ${CONTEXT}
-            docker push ${IMAGE}         
-          
-      #Login to Openshift using OC SA and Token of respective env.
-      - name: Authenticate OC Env Specific SA
-        uses: redhat-actions/oc-login@v1
-        env:
-          OPENSHIFT_NAMESPACE: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
-          #OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEPLOYER_SA_USERNAME}}
-          OPENSHIFT_USER: ${{secrets.OPENSHIFT__DEFAULT_SA_USERNAME}}
-        with:
-          openshift_server_url: ${{secrets.OPENSHIFT_SERVER_URL}}
-          #openshift_token: ${{secrets.OPENSHIFT_DEPLOYER_SA_PASSWORD}}
-          openshift_token: ${{secrets.OPENSHIFT_DEFAULT_SA_TOKEN}}
-          namespace: ${OPENSHIFT_NAMESPACE}
+            docker push ${IMAGE} 
+
+      # Would uncomment when we are able to execute patch on dc     
+      # Login to Openshift using OC SA and Token of respective env.
+      #- name: Authenticate OC Env Specific SA
+      #  uses: redhat-actions/oc-login@v1
+      #  env:
+      #    OPENSHIFT_NAMESPACE: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
+      #    #OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEPLOYER_SA_USERNAME}}
+      #    OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEFAULT_SA_USERNAME}}
+      #  with:
+      #    openshift_server_url: ${{secrets.OPENSHIFT_SERVER_URL}}
+      #    #openshift_token: ${{secrets.OPENSHIFT_DEPLOYER_SA_PASSWORD}}
+      #    openshift_token: ${{secrets.OPENSHIFT_DEFAULT_SA_TOKEN}}
+      #    namespace: ${OPENSHIFT_NAMESPACE}
       
       # The steps below would not work until some additional role binding work is done
       # On corresponding namesapce. However at present none of us has that privilege.
