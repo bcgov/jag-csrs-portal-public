@@ -25,16 +25,16 @@ namespace Csrs.Api.Features.Accounts
 
             private Response()
             {
-                Accounts = Array.Empty<PortalAccount>();
+                Account = null;
             }
 
             public Response(PortalAccount account)
             {
                 ArgumentNullException.ThrowIfNull(account);
-                Accounts = new List<PortalAccount>() { account };
+                Account = account;
             }
 
-            public IList<PortalAccount> Accounts { get; init; }
+            public PortalAccount? Account { get; init; }
         }
 
         public class Handler : IRequestHandler<Request, Response>

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Swashbuckle.AspNetCore.Annotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Csrs.Api.Models
 {
@@ -14,6 +15,7 @@ namespace Csrs.Api.Models
         public string? LastName { get; set; }
         public string? PreferredName { get; set; }
         [Required]
+        [SwaggerSchema(Format = "date")]
         public DateTime DateOfBirth { get; set; }
         [Required]
         public string? Gender { get; set; }

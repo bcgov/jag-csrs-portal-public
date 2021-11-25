@@ -76,13 +76,19 @@ namespace Csrs.Api.Controllers
         /// <summary>
         /// Gets the profile for the currently logged in user.
         /// </summary>
-        [HttpGet("Profile")]
-        [ProducesResponseType(typeof(IList<PortalAccount>), (int)HttpStatusCode.OK)]
-        public async Task<IList<PortalAccount>> GetProfileAsync(CancellationToken cancellationToken)
+        /// <response code="200">The account was found</response>
+        /// <response code="401">The request is not authorized. Ensure correct authentication header is present.</response>
+        /// <response code="404">The account was not found</response>
+        [HttpGet]
+        [ProducesResponseType(typeof(PortalAccount), (int)HttpStatusCode.OK)]
+        [ProducesResponseType((int)HttpStatusCode.NotFound)]
+        [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+        public async Task<IActionResult> GetProfileAsync(CancellationToken cancellationToken)
         {
             Profile.Request request = new(User);
             Profile.Response? response = await _mediator.Send(request, cancellationToken);
-            return response.Accounts;
+
+            return response.Account != null ? Ok(response.Account) : NotFound();
         }
 
         [HttpPost("Signup")]

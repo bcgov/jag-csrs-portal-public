@@ -24,15 +24,6 @@ public static class AuthenticationExtensions
             }
         }
 
-        // secure by default
-        builder.Services.AddAuthorization(options =>
-        {
-            options.FallbackPolicy = new AuthorizationPolicyBuilder()
-              .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-              .RequireAuthenticatedUser()
-              .Build();
-        });
-
         builder.Services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
