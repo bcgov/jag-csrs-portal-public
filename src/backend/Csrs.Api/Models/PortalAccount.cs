@@ -4,7 +4,7 @@ namespace Csrs.Api.Models
 {
     public class PortalAccount
     {
-        public Guid PartyGuid { get; set; }
+        public Guid PartyId { get; set; }
         [Required]
         public Guid BCeIDGuid { get; set; }
         [Required]

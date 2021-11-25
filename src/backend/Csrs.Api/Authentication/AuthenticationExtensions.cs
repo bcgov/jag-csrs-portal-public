@@ -1,5 +1,6 @@
 ﻿using Csrs.Api.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using System.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,15 @@ public static class AuthenticationExtensions
                 return; // for development, no auth if not configured?
             }
         }
+
+        // secure by default
+        builder.Services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+              .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+              .RequireAuthenticatedUser()
+              .Build();
+        });
 
         builder.Services.AddAuthentication(options =>
         {

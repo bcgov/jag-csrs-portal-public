@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Csrs.Api.Models;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Csrs.Api.Controllers

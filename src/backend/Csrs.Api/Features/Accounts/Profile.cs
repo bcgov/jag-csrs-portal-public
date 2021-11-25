@@ -4,15 +4,13 @@ using Csrs.Api.Repositories;
 using Csrs.Api.Models.Dynamics;
 using AutoMapper;
 
-namespace Csrs.Api.Features.PortalAccounts
+namespace Csrs.Api.Features.Accounts
 {
     public static class Profile
     {
         public class Request : IRequest<Response>
         {
-            //[FromQuery(Name = "bceIDGuid")]
-            //[Required]
-            public Guid BCeIDGuid { get; set; }
+             public Guid BCeIDGuid { get; set; }
         }
 
         public class Response
@@ -50,6 +48,11 @@ namespace Csrs.Api.Features.PortalAccounts
 
             public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
             {
+                var genders = await _repository.GetGenderPicklistAsync(cancellationToken);
+                var identities = await _repository.GetIdentityPicklistAsync(cancellationToken);
+                var provinces = await _repository.GetProvincePicklistAsync(cancellationToken);
+                var referrals = await _repository.GetReferralPicklistAsync(cancellationToken);
+
                 var item = await _repository.GetAsync(request.BCeIDGuid, SSG_CsrsParty.AllProperties, cancellationToken);
                 if (item is null)
                 {
