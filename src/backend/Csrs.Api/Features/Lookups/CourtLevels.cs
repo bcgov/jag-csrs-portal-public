@@ -20,11 +20,7 @@ namespace Csrs.Api.Features.Lookups
 
             public Response(IEnumerable<Models.Dynamics.SSG_CsrsBCCourtLevel> items)
             {
-                if (items is null)
-                {
-                    throw new ArgumentNullException(nameof(items));
-                }
-
+                ArgumentNullException.ThrowIfNull(items);
                 Items = new List<Models.Dynamics.SSG_CsrsBCCourtLevel>(items);
             }
         }

@@ -80,13 +80,7 @@ namespace Csrs.Api.Controllers
         [ProducesResponseType(typeof(IList<PortalAccount>), (int)HttpStatusCode.OK)]
         public async Task<IList<PortalAccount>> GetProfileAsync(CancellationToken cancellationToken)
         {
-            Guid? userId = User.GetBCeIDUserId();
-            if (userId is null)
-            {
-                return Array.Empty<PortalAccount>();
-            }
-
-            Profile.Request request = new() { BCeIDGuid = userId.Value };
+            Profile.Request request = new(User);
             Profile.Response? response = await _mediator.Send(request, cancellationToken);
             return response.Accounts;
         }

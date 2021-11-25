@@ -23,10 +23,7 @@ namespace Csrs.Api.Repositories
 
         public async Task DeleteAsync(TEntity entity, CancellationToken cancellationToken)
         {
-            if (entity is null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
+            ArgumentNullException.ThrowIfNull(entity);
 
             await Client
                 .For<TEntity>()
@@ -36,10 +33,7 @@ namespace Csrs.Api.Repositories
 
         public async Task<IList<TEntity>> GetAllAsync(Expression<Func<TEntity, object>> properties, CancellationToken cancellationToken)
         {
-            if (properties is null)
-            {
-                throw new ArgumentNullException(nameof(properties));
-            }
+            ArgumentNullException.ThrowIfNull(properties);
 
             IEnumerable<TEntity>? entities = await Client
                 .For<TEntity>()
@@ -56,10 +50,7 @@ namespace Csrs.Api.Repositories
                 return null;
             }
 
-            if (properties is null)
-            {
-                throw new ArgumentNullException(nameof(properties));
-            }
+            ArgumentNullException.ThrowIfNull(properties);
 
             try
             {
@@ -83,10 +74,7 @@ namespace Csrs.Api.Repositories
 
         public async Task<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken)
         {
-            if (entity is null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
+            ArgumentNullException.ThrowIfNull(entity);
 
             entity = await Client
                 .For<TEntity>()
@@ -98,10 +86,7 @@ namespace Csrs.Api.Repositories
 
         public async Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken)
         {
-            if (entity is null)
-            {
-                throw new ArgumentNullException(nameof(entity));
-            }
+            ArgumentNullException.ThrowIfNull(entity);
 
             entity = await Client
                 .For<TEntity>()

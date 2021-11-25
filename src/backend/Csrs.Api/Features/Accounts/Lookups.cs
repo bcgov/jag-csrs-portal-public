@@ -6,7 +6,7 @@ namespace Csrs.Api.Features.Accounts
 {
     public static class Lookups
     {
-        public enum LookupsType
+        public enum LookupType
         {
             Unknown = 0,
             Gender,
@@ -17,14 +17,14 @@ namespace Csrs.Api.Features.Accounts
 
         public class Request : IRequest<Response>
         {
-            public static readonly Request Gender = new(LookupsType.Gender);
-            public static readonly Request Province = new(LookupsType.Province);
-            public static readonly Request Identity = new(LookupsType.Identity);
-            public static readonly Request Referral = new(LookupsType.Referral);
+            public static readonly Request Gender = new(LookupType.Gender);
+            public static readonly Request Province = new(LookupType.Province);
+            public static readonly Request Identity = new(LookupType.Identity);
+            public static readonly Request Referral = new(LookupType.Referral);
 
-            public LookupsType Type { get; init; }
+            public LookupType Type { get; init; }
 
-            private Request(LookupsType type)
+            private Request(LookupType type)
             {
                 Type = type;
             }
@@ -36,11 +36,7 @@ namespace Csrs.Api.Features.Accounts
 
             public Response(IList<OptionValue> items)
             {
-                if (items is null)
-                {
-                    throw new ArgumentNullException(nameof(items));
-                }
-
+                ArgumentNullException.ThrowIfNull(items);
                 Items = items;
             }
         }
@@ -61,16 +57,16 @@ namespace Csrs.Api.Features.Accounts
 
                 switch (request.Type)
                 {
-                    case LookupsType.Gender:
+                    case LookupType.Gender:
                         items = await _repository.GetGenderPicklistAsync(cancellationToken);
                         break;
-                    case LookupsType.Referral:
+                    case LookupType.Referral:
                         items = await _repository.GetReferralPicklistAsync(cancellationToken);
                         break;
-                    case LookupsType.Province:
+                    case LookupType.Province:
                         items = await _repository.GetProvincePicklistAsync(cancellationToken);
                         break;
-                    case LookupsType.Identity:
+                    case LookupType.Identity:
                         items = await _repository.GetIdentityPicklistAsync(cancellationToken);
                         break;
                     default:

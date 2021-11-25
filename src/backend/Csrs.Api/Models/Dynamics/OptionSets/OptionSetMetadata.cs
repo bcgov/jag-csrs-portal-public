@@ -7,7 +7,7 @@
 
     public class PicklistOptionSetMetadata
     {
-        public List<OptionSetMetadata> Value { get; set; }
+        public List<OptionSetMetadata>? Value { get; set; }
     }
 
 
