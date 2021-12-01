@@ -512,9 +512,9 @@ export class QuestionnaireComponent implements AfterViewInit {
         '#cdk-step-label-0-' + index + ' .mat-step-icon-state-edit'
       );
       if (question.clicked === 'Yes' && node) {
-        node[style].cssText += 'background-color:green !important';
+        node[style].cssText += 'background-color:#2E8540 !important';
       } else if (node && question.clicked === 'No') {
-        node[style].cssText += 'background-color:red !important';
+        node[style].cssText += 'background-color:#D8292F !important';
       }
     });
   }
