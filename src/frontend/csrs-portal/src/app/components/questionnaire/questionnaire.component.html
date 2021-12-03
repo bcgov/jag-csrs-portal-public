@@ -68,8 +68,8 @@
                    </div>
                    <div class="yesNocontent text-dark" *ngFor="let buttonItem of question.buttons; index as yi">
                       <div *ngIf="buttonItem.label == question.clicked">
-                         <div class="clickedContent" *ngFor="let cItem of buttonItem.clickedContent; index as ci">
-                            <p class="body-text" id="{{'id-'+i+'-'+yi+'-'+ci}}" *ngIf="!cItem.data.ul">{{stringToHTML(i,yi,ci,cItem.data,'id')}}</p>
+                         <div *ngFor="let cItem of buttonItem.clickedContent; index as ci">
+                            <p id="{{'id-'+i+'-'+yi+'-'+ci}}" *ngIf="!cItem.data.ul">{{stringToHTML(i,yi,ci,cItem.data,'id')}}</p>
                             <ul *ngIf="cItem.data.ul">
                                <li id="{{'li-'+i+'-'+yi+'-'+uli}}" *ngFor="let liItem of cItem.data.ul;index as uli ">
                                   {{stringToHTML(i,yi,uli,liItem.liData,'li')}}

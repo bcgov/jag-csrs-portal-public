@@ -9,14 +9,7 @@ div.landing-summary {
   -o-background-size: cover;
   background-size: cover;
 }
-.toolTipIcon{
-  font-size: 16px;
-}
-::ng-deep .mat-step-header[aria-labelledby="disabled_step"] {
-  height:50px;
-  pointer-events: none !important;
-  cursor: not-allowed;
-}
+
 .summary-header-links {
   list-style: none;
   margin-bottom: 0;
@@ -81,9 +74,6 @@ div.summary-header {
 .yesNocontent{
   padding-top: 15px;
 }
-// .clickedContent{
-// color: #000; 
-// }
 .body-text{
   padding-bottom: 0px;
 }
