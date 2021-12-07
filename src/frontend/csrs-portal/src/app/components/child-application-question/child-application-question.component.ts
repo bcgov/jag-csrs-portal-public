@@ -35,10 +35,11 @@ export class ChildApplicationQuestionComponent implements OnInit {
   constructor(private _formBuilder: FormBuilder, private http: HttpClient) {}
 
   ngOnInit() {
-    debugger;
-    this.provinceData = [{label: 'hai', value: 1234}];
-    this.identityData = [{label: 'hai', value: 1234}];
+    this.provinceData = [{label: 'province', value: 'british columbia'}];
+    this.identityData = [{label: 'hai', value: ''}];
     this.genderData =  [{label: 'hai', value: 1234}];
+     this.getReferalsData();
+    this.getCourtLocationData();
     this.getIdentityData();
     this.getProvinceData();
     this.getGenderyData();
