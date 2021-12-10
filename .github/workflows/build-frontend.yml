@@ -8,7 +8,8 @@ on:
   # Trigger the this workflow on push/merge on main
   push:
     branches:
-      - 'main' 
+      - 'main'
+      - 'security_scan'
   
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -68,17 +69,9 @@ jobs:
           echo "Release Environment: ${{ env.env }}"
           echo "Release Git Sha: ${{env.gitsha}}"
           
-       #Login to OpenShift Container Repository
-      - name: Login to OpenShift Container Repository
-        uses: docker/login-action@v1
-        with:
-          registry: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}
-          username: ${{secrets.OPENSHIFT_BUILDER_SA_USERNAME}}
-          password: ${{secrets.OPENSHIFT_BUILDER_SA_PASSWORD}}
 
-
-      #Build and push image to OpenShift Image stream
-      - name: Build & Push Image to Openshift Image Stream
+      #Build image
+      - name: Build Image
         env:
           COMPOSE_DOCKER_CLI_BUILD: 1
           DOCKER_BUILDKIT: 1
@@ -89,7 +82,35 @@ jobs:
           docker build \
             --tag ${IMAGE} \
             ${CONTEXT}
-            docker push ${IMAGE} 
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{env.env}}/${{env.app}}:${{env.env}}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      #Login to OpenShift Container Repository
+      - name: Login to OpenShift Container Repository
+        uses: docker/login-action@v1
+        with:
+          registry: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}
+          username: ${{secrets.OPENSHIFT_BUILDER_SA_USERNAME}}
+          password: ${{secrets.OPENSHIFT_BUILDER_SA_PASSWORD}}
+
+      #Push image to OpenShift Image stream
+      - name: Push Image to Openshift Image Stream
+        env:
+          IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{env.env}}/${{env.app}}:${{env.env}}
+        run: |
+          docker push ${IMAGE}
 
       # Would uncomment when we are able to execute patch on dc     
       # Login to Openshift using OC SA and Token of respective env.
