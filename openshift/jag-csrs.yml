@@ -15,7 +15,7 @@ parameters:
 - name: APP_NAME
   description: The application name that each component is part of
   required: true
-  value: jag-csrs-frontend
+  value: jag-csrs
 
 - name: SPLUNK_CONFIG_NAME
   description: The application name that each component is part of
@@ -25,12 +25,17 @@ parameters:
 - name: ROUTE_PREFIX
   description: The application name that each component is part of
   required: true
-  value: jag-csrs-frontend
+  value: jag-csrs-portal-public
 
 - name: COMPONENT_NAME
   description: The component name
   required: true
   value: jag-csrs-frontend
+
+- name: API_COMPONENT_NAME
+  description: The API component name
+  required: true
+  value: jag-csrs-api
   
 - name: OC_NAMESPACE
   description: The OpenShift namespace prefix
@@ -126,6 +131,8 @@ objects:
             name: ${COMPONENT_NAME}:${OC_ENV}
   status: {}
 
+
+
 ### JAG-csrs Service ###
 - apiVersion: v1
   kind: Service
@@ -163,4 +170,4 @@ objects:
     tls:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
-      wildcardPolicy: None
+    wildcardPolicy: None
