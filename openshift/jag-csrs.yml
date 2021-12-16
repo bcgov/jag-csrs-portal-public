@@ -93,11 +93,11 @@ objects:
             ports:
               - containerPort: 8080
             env:
-            - name: SPLUNK_HTTP_URL
+            - name: SPLUNK_URL
               valueFrom:
                 secretKeyRef:
                   name: ${SPLUNK_CONFIG_NAME}
-                  key: SPLUNK_HTTP_URL
+                  key: SPLUNK_URL
             - name: SPLUNK_TOKEN
               valueFrom:
                 secretKeyRef:
