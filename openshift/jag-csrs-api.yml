@@ -18,10 +18,14 @@ parameters:
   value: jag-csrs
 
 - name: SPLUNK_CONFIG_NAME
-  description: The application name that each component is part of
+  description: Source of Splunk config values
   required: true
   value: blahblah
 
+- name: OAUTH_CONFIG_NAME
+  description: Source of Dynamics config values
+  required: true
+  value: blahblah
 - name: ROUTE_PREFIX
   description: The application name that each component is part of
   required: true
@@ -93,21 +97,51 @@ objects:
             ports:
               - containerPort: 8080
             env:
-            - name: SPLUNK_HTTP_URL
+            - name: SPLUNK_URL
               valueFrom:
                 secretKeyRef:
                   name: ${SPLUNK_CONFIG_NAME}
-                  key: SPLUNK_HTTP_URL
+                  key: SPLUNK__URL
             - name: SPLUNK_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: ${SPLUNK_CONFIG_NAME}
-                  key: SPLUNK_TOKEN
+                  key: SPLUNK__TOKEN
             - name: SPLUNK_INDEX
               valueFrom:
                 secretKeyRef:
                   name: ${SPLUNK_CONFIG_NAME}
-                  key: SPLUNK_INDEX
+                  key: SPLUNK__INDEX
+            - name: OAUTH_CLIENTID
+              valueFrom:
+                secretKeyRef:
+                  name: ${OAUTH_CONFIG_NAME}
+                  key: OAUTH__CLIENTID
+            - name: OAUTH_OAUTHURL
+              valueFrom:
+                secretKeyRef:
+                  name: ${OAUTH_CONFIG_NAME}
+                  key: OAUTH__OAUTHURL
+            - name: OAUTH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ${OAUTH_CONFIG_NAME}
+                  key: OAUTH__PASSWORD
+            - name: OAUTH_RESOURCEURL
+              valueFrom:
+                secretKeyRef:
+                  name: ${OAUTH_CONFIG_NAME}
+                  key: OAUTH__RESOURCEURL
+            - name: OAUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ${OAUTH_CONFIG_NAME}
+                  key: OAUTH__SECRET
+            - name: OAUTH_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ${OAUTH_CONFIG_NAME}
+                  key: OAUTH__USERNAME         
             - name: BCEID_URL
               value: ${BCEID_URL}
             resources:
