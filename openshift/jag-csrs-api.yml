@@ -101,17 +101,17 @@ objects:
               valueFrom:
                 secretKeyRef:
                   name: ${SPLUNK_CONFIG_NAME}
-                  key: SPLUNK__URL
+                  key: SPLUNK_URL
             - name: SPLUNK_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: ${SPLUNK_CONFIG_NAME}
-                  key: SPLUNK__TOKEN
+                  key: SPLUNK_TOKEN
             - name: SPLUNK_INDEX
               valueFrom:
                 secretKeyRef:
                   name: ${SPLUNK_CONFIG_NAME}
-                  key: SPLUNK__INDEX
+                  key: SPLUNK_INDEX
             - name: OAUTH_CLIENTID
               valueFrom:
                 secretKeyRef:
