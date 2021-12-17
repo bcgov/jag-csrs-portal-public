@@ -102,7 +102,7 @@ objects:
             ports:
               - containerPort: 8081
             env:
-            - name:JWT__AUDIENCE
+            - name: JWT__AUDIENCE
               valueFrom:
                 secretKeyRef:
                   name: ${JWT_CONFIG_NAME}
