@@ -36,6 +36,11 @@ parameters:
   required: true
   value: jag-csrs-frontend
 
+- name: JWT_CONFIG_NAME
+  description: The jwt config name
+  required: true
+  value: jwt
+
 - name: API_COMPONENT_NAME
   description: The API component name
   required: true
@@ -95,8 +100,18 @@ objects:
             name: ${API_COMPONENT_NAME} 
             imagePullPolicy: Always
             ports:
-              - containerPort: 8080
+              - containerPort: 8081
             env:
+            - name:JWT__AUDIENCE
+              valueFrom:
+                secretKeyRef:
+                  name: ${JWT_CONFIG_NAME}
+                  key: JWT__AUDIENCE
+            - name: JWT__AUTHORITY
+              valueFrom:
+                secretKeyRef:
+                  name: ${JWT_CONFIG_NAME}
+                  key: JWT__AUTHORITY
             - name: SPLUNK_URL
               valueFrom:
                 secretKeyRef:
@@ -112,32 +127,32 @@ objects:
                 secretKeyRef:
                   name: ${SPLUNK_CONFIG_NAME}
                   key: SPLUNK_INDEX
-            - name: OAUTH_CLIENTID
+            - name: OAUTH__CLIENTID
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__CLIENTID
-            - name: OAUTH_OAUTHURL
+            - name: OAUTH__OAUTHURL
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__OAUTHURL
-            - name: OAUTH_PASSWORD
+            - name: OAUTH__PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__PASSWORD
-            - name: OAUTH_RESOURCEURL
+            - name: OAUTH__RESOURCEURL
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__RESOURCEURL
-            - name: OAUTH_SECRET
+            - name: OAUTH__SECRET
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__SECRET
-            - name: OAUTH_USERNAME
+            - name: OAUTH__USERNAME
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
