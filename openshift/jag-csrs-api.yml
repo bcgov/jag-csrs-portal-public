@@ -127,32 +127,32 @@ objects:
                 secretKeyRef:
                   name: ${SPLUNK_CONFIG_NAME}
                   key: SPLUNK_INDEX
-            - name: OAUTH__CLIENTID
+            - name: OAUTH_CLIENTID
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__CLIENTID
-            - name: OAUTH__OAUTHURL
+            - name: OAUTH_OAUTHURL
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__OAUTHURL
-            - name: OAUTH__PASSWORD
+            - name: OAUTH_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__PASSWORD
-            - name: OAUTH__RESOURCEURL
+            - name: OAUTH_RESOURCEURL
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__RESOURCEURL
-            - name: OAUTH__SECRET
+            - name: OAUTH_SECRET
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__SECRET
-            - name: OAUTH__USERNAME
+            - name: OAUTH_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
