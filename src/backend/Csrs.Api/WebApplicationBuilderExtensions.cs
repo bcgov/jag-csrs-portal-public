@@ -38,21 +38,21 @@ public static class WebApplicationBuilderExtensions
         // Register IOAuthApiClient and ODataClientSettings
         services.AddHttpClient<IOAuthApiClient, OAuthApiClient>(client =>
         {
-            client.Timeout = TimeSpan.FromSeconds(10); // set the auth timeout
+            client.Timeout = TimeSpan.FromSeconds(1500); // set the auth timeout
         });
 
         // Register httpClient for OdataClient with OAuthHandler
         services.AddHttpClient<ODataClientSettings>(client => 
         { 
             client.BaseAddress = new Uri(oAuthOptions.ResourceUrl);
-            client.Timeout = TimeSpan.FromSeconds(30); // data timeout
+            client.Timeout = TimeSpan.FromSeconds(1500); // data timeout
         })
         .AddHttpMessageHandler<OAuthHandler>();
 
         services.AddHttpClient<IOptionSetRepository, OptionSetRepository>(client => 
         {
             client.BaseAddress = new Uri(oAuthOptions.ResourceUrl);
-            client.Timeout = TimeSpan.FromSeconds(10); // options timeout
+            client.Timeout = TimeSpan.FromSeconds(1500); // options timeout
         })
         .AddHttpMessageHandler<OAuthHandler>();
 
