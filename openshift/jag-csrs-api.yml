@@ -102,12 +102,12 @@ objects:
             ports:
               - containerPort: 8081
             env:
-            - name: JWT__AUDIENCE
+            - name: JWT_AUDIENCE
               valueFrom:
                 secretKeyRef:
                   name: ${JWT_CONFIG_NAME}
                   key: JWT__AUDIENCE
-            - name: JWT__AUTHORITY
+            - name: JWT_AUTHORITY
               valueFrom:
                 secretKeyRef:
                   name: ${JWT_CONFIG_NAME}
@@ -164,7 +164,7 @@ objects:
                 cpu: 250m
                 memory: 1000Mi
               requests:
-                cpu: 125m
+                cpu: 250m
                 memory: 512Mi
             # Took away readiness and liveness probe until those end points are ready
     triggers:
