@@ -21,7 +21,7 @@
             Add("OAUTH_SECRET", $"{nameof(CsrsConfiguration.OAuth)}:{nameof(OAuthConfiguration.Secret)}");
             Add("OAUTH_RESOURCEURL", $"{nameof(CsrsConfiguration.OAuth)}:{nameof(OAuthConfiguration.ResourceUrl)}");
             Add("OAUTH_CLIENTID", $"{nameof(CsrsConfiguration.OAuth)}:{nameof(OAuthConfiguration.ClientId)}");
-
+            Add("APIGATEWAY_BASEPATH", $"{nameof(CsrsConfiguration.ApiGateway)}:{nameof(ApiGateway.BasePath)}");
         }
 
         /// <summary>
