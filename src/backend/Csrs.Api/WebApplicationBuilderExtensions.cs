@@ -65,7 +65,7 @@ public static class WebApplicationBuilderExtensions
             client.Timeout = TimeSpan.FromSeconds(110); // options timeout
 
         })
-        .AddHttpMessageHandler<OAuthHandler>();
+        .AddHttpMessageHandler<OAuthHandler>()
         .AddHttpMessageHandler<ApiGatewayHandler>();
 
         services.AddTransient<IODataClient>(provider =>
