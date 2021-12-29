@@ -156,7 +156,12 @@ objects:
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
-                  key: OAUTH__USERNAME         
+                  key: OAUTH__USERNAME
+            - name: APIGATEWAY_BASEPATH
+              valueFrom:
+                secretKeyRef:
+                  name: ${OAUTH_CONFIG_NAME}
+                  key: APIGATEWAY_BASEPATH
             - name: BCEID_URL
               value: ${BCEID_URL}
             resources:

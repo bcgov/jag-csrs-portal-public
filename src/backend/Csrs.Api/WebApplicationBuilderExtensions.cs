@@ -40,7 +40,7 @@ public static class WebApplicationBuilderExtensions
         // Add OAuth Middleware
         services.AddTransient<OAuthHandler>();
         // Add ApiGateway Middleware
-        //services.AddTransient<ApiGatewayHandler>();
+        services.AddTransient<ApiGatewayHandler>();
 
         // Register IOAuthApiClient and ODataClientSettings
         services.AddHttpClient<IOAuthApiClient, OAuthApiClient>(client =>
@@ -52,20 +52,21 @@ public static class WebApplicationBuilderExtensions
         services.AddHttpClient<ODataClientSettings>(client => 
 
         {
-            //client.BaseAddress = new Uri(oAuthOptions.ResourceUrl);
-            client.BaseAddress = new Uri(apiGatewayOptions.BasePath);
+            client.BaseAddress = new Uri(oAuthOptions.ResourceUrl);
+            //client.BaseAddress = new Uri(apiGatewayOptions.BasePath);
             client.Timeout = TimeSpan.FromSeconds(30); // data timeout
         })
-        .AddHttpMessageHandler<OAuthHandler>();
+        .AddHttpMessageHandler<OAuthHandler>()
+        .AddHttpMessageHandler<ApiGatewayHandler>();
 
         services.AddHttpClient<IOptionSetRepository, OptionSetRepository>(client =>
         {
-            client.BaseAddress = new Uri(apiGatewayOptions.BasePath);
+            client.BaseAddress = new Uri(oAuthOptions.ResourceUrl); //new Uri(apiGatewayOptions.BasePath);
             client.Timeout = TimeSpan.FromSeconds(110); // options timeout
 
         })
         .AddHttpMessageHandler<OAuthHandler>();
-        //.AddHttpMessageHandler<ApiGatewayHandler>();
+        .AddHttpMessageHandler<ApiGatewayHandler>();
 
         services.AddTransient<IODataClient>(provider =>
         {
