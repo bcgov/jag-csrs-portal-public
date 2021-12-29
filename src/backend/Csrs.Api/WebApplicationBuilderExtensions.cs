@@ -52,8 +52,8 @@ public static class WebApplicationBuilderExtensions
         services.AddHttpClient<ODataClientSettings>(client => 
 
         {
-            client.BaseAddress = new Uri(oAuthOptions.ResourceUrl);
-            //client.BaseAddress = new Uri(apiGatewayOptions.BasePath);
+            //client.BaseAddress = new Uri(oAuthOptions.ResourceUrl);
+            client.BaseAddress = new Uri(apiGatewayOptions.BasePath);
             client.Timeout = TimeSpan.FromSeconds(30); // data timeout
         })
         .AddHttpMessageHandler<OAuthHandler>()
@@ -61,7 +61,7 @@ public static class WebApplicationBuilderExtensions
 
         services.AddHttpClient<IOptionSetRepository, OptionSetRepository>(client =>
         {
-            client.BaseAddress = new Uri(oAuthOptions.ResourceUrl); //new Uri(apiGatewayOptions.BasePath);
+            client.BaseAddress = new Uri(apiGatewayOptions.BasePath);
             client.Timeout = TimeSpan.FromSeconds(110); // options timeout
 
         })
