@@ -52,7 +52,6 @@ public static class WebApplicationBuilderExtensions
         services.AddHttpClient<ODataClientSettings>(client => 
 
         {
-            //client.BaseAddress = new Uri(oAuthOptions.ResourceUrl);
             client.BaseAddress = new Uri(apiGatewayOptions.BasePath);
             client.Timeout = TimeSpan.FromSeconds(30); // data timeout
         })
