@@ -4,9 +4,7 @@ on:
   push:
   pull_request:
     branches:
-      - 'api_deployment'
-      - 'test_sergey_api_gw_change'
-      #- 'main'
+      - '*'  # indicates any branch; should set to 'main' at some point
       # as per https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onpushpull_requestbranchestags 
     paths:
       - 'src/backend/**'
