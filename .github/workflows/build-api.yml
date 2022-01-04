@@ -4,7 +4,7 @@ on:
   push:
   pull_request:
     branches:
-      - '*'  # indicates any branch; should set to 'main' at some point
+      - 'main'
       # as per https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onpushpull_requestbranchestags 
     paths:
       - 'src/backend/**'
