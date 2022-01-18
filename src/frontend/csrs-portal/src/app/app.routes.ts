@@ -5,6 +5,7 @@ export class AppRoutes {
   public static STEPPERFORM = 'stepperform';
   public static APPLICATIONFORM = 'applicationform';
   public static MAILBOX = 'mailbox';
+  public static COMMUNICATIONFORM = 'communication';
   public static routePath(route: string): string {
     return `/${route}`;
   }

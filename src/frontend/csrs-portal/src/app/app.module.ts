@@ -37,12 +37,19 @@ import { AuthConfigModule } from './auth/auth-config.module';
 import { ApiModule } from './api/api.module';
 import { Configuration } from './api/configuration';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
-import {MatDialogModule} from '@angular/material/dialog';
 import { MailboxComponent } from './components/mailbox/mailbox.component';
+import { CommunicationComponent } from './components/communication/communication.component';
+import { MatIconModule } from '@angular/material/icon'
+import { MatDialogModule, MAT_DIALOG_DATA, MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
+
+import { MatTabsModule } from '@angular/material/tabs';
+import { ModalDialogComponent } from './components/modal-dialog/modal-dialog.component';
+import { FormsModule } from '@angular/forms';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -52,6 +59,8 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     ApplicationFormStepperComponent,
     ChildApplicationQuestionComponent,
     MailboxComponent,
+    CommunicationComponent,
+    ModalDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -68,6 +77,10 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     AuthConfigModule,
     ApiModule,
     MatDialogModule,
+    MatTabsModule,
+    MatIconModule,
+    MatDialogModule,
+    FormsModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
@@ -82,6 +95,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   providers: [
     CurrencyPipe,
     AppConfigService,
+    {provide: MAT_DIALOG_DEFAULT_OPTIONS, useValue: {hasBackdrop: true}},
     {
       provide: STEPPER_GLOBAL_OPTIONS,
       useValue: { showError: true },
