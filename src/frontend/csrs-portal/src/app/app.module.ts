@@ -3,7 +3,7 @@ import {
   HttpClientModule,
   HTTP_INTERCEPTORS,
 } from '@angular/common/http';
-import { NgModule, APP_INITIALIZER } from '@angular/core';
+import { NgModule, APP_INITIALIZER, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgBusyModule } from 'ng-busy';
@@ -37,6 +37,8 @@ import { AuthConfigModule } from './auth/auth-config.module';
 import { ApiModule } from './api/api.module';
 import { Configuration } from './api/configuration';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
+import {MatDialogModule} from '@angular/material/dialog';
+import { MailboxComponent } from './components/mailbox/mailbox.component';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -49,6 +51,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     WelcomeUserComponent,
     ApplicationFormStepperComponent,
     ChildApplicationQuestionComponent,
+    MailboxComponent,
   ],
   imports: [
     CommonModule,
@@ -64,6 +67,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     MatGridListModule,
     AuthConfigModule,
     ApiModule,
+    MatDialogModule,
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
