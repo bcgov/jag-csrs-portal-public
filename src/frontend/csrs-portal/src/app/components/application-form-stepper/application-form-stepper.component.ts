@@ -46,6 +46,8 @@ export class ApplicationFormStepperComponent implements OnInit {
   _logger: LoggerService;
   _oidc: OidcSecurityService;
   isEditable = false;
+  today = new Date(); 
+
 
   constructor(private _formBuilder: FormBuilder, private http: HttpClient,
     @Inject(AccountService) private accountService,
@@ -196,11 +198,12 @@ openDialog() {
   const dialogRef = this.dialog.open(ConfirmDialogComponent,{
     width: '550px'
   });
-
+  
   dialogRef.afterClosed().subscribe(result => {
     console.log(`Dialog result: ${result}`);
   });
 }
+
 editPage(stepper, index){
   this.isEditable = true;
   stepper.selectedIndex = index;

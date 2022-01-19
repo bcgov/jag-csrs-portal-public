@@ -72,7 +72,10 @@
 
         <mat-step [stepControl]="secondFormGroup" [editable]="isEditable">
           <form [formGroup]="secondFormGroup">
-            <ng-template matStepLabel>Your Personal Information</ng-template>            
+            <ng-template matStepLabel>Your Personal Information</ng-template> 
+            <div class="text-dark pb-1">
+              Fields marked <span class="text-danger">*</span> are required
+            </div>
             <div class="row">
               <div class="col-md-6">
                 <mat-form-field class="w-100">
@@ -120,7 +123,7 @@
                 <!-- </mat-form-field> -->
                 <mat-form-field class="w-100" appearance="fill">
                   <mat-label>Date of birth<span class="text-danger">*</span></mat-label>
-                  <input matInput [matDatepicker]="picker2" formControlName="birthdate">
+                  <input matInput [matDatepicker]="picker2" [max]="today" formControlName="birthdate">
                   <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
                   <mat-datepicker #picker2></mat-datepicker>
                 </mat-form-field>
@@ -264,6 +267,9 @@
               Enter as much information as you can about the other party
               involved in this application.
             </div>
+            <div class="text-dark pb-1">
+              Fields marked <span class="text-danger">*</span> are required
+            </div>
             <div class="row row-height">
               <div class="col-md-6">
                 <mat-form-field class="w-100">
@@ -311,7 +317,7 @@
                 <!-- </mat-form-field> -->
                 <mat-form-field class="w-100" appearance="fill">
                   <mat-label>Date of birth</mat-label>
-                  <input matInput [matDatepicker]="picker" formControlName="birthdate">
+                  <input matInput [matDatepicker]="picker" [max]="today" formControlName="birthdate">
                   <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                   <mat-datepicker #picker></mat-datepicker>
                 </mat-form-field>
@@ -495,11 +501,27 @@
                   </mat-radio-group>
                 </div>
               </div>
-              <div class="add-child">
-                <button  mat-stroked-button (click)="callAntherchild()">
-                  + Add another child
-                </button>
+              <div class="row">
+                <div class="col-md-4">
+                </div>
+                <div class="col-md-4">
+                </div>
+                <div class="col-md-4">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div *ngIf="i>0">
+                          <mat-icon style="color:red" color="danger" (click)="deletechild(i)">delete</mat-icon>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <button  mat-stroked-button (click)="callAntherchild()">
+                        + Add another child
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
+              
             </ng-container>
           </form>
           <mat-divider></mat-divider>

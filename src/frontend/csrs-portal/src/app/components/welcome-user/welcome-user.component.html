@@ -47,7 +47,9 @@
       <div class="col-md-6">
         <mat-form-field class="w-100">
           <mat-label>Password</mat-label>
-          <input matInput placeholder="XXXXXXXXXXX"/>
+          <input matInput placeholder="XXXXXXXXXXX" pattern="[a-zA-Z0-9.-_]{1,}@[a-zA-Z.-]{2,}[.]{1}[a-zA-Z]{2,}" type="password"/>
+          <!-- <input matInput placeholder="XXXXXXXXXXX" type="hide ? 'password' : 'text'"/> -->
+          <!-- <mat-icon matSuffix (click)="hide = !hide">{{hide ? 'visibility_off' : 'visibility'}}</mat-icon> -->
         </mat-form-field>
       </div>
     </div>

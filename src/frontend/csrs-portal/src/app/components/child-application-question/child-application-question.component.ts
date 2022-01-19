@@ -209,6 +209,9 @@ editPage(stepper, index){
   this.isEditable = true;
   stepper.selectedIndex = index;
 }
+deletechild(index){
+  this.fourthFormGroup1.get('users')['controls'].splice(index,1)
+}
   getIdentityData() {
 
     this._accountService.configuration.accessToken =  this._oidc.getAccessToken();

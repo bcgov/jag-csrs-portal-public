@@ -13,7 +13,7 @@ import { AppRoutes } from 'app/app.routes';
 })
 export class WelcomeUserComponent implements OnInit {
   _reponse: HttpResponse<AccountFileSummary>;
-
+  hide = true;
   constructor(@Inject(AccountService) private accountService,
               @Inject(LoggerService) private logger,
               @Inject(Router) private router) {}

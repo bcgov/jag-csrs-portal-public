@@ -109,7 +109,7 @@
               <div class="col-md-6">
                 <mat-form-field class="w-100">
                   <mat-label>Birthdate</mat-label>
-                  <input matInput [matDatepicker]="picker" formControlName="birthdate" 
+                  <input matInput [matDatepicker]="picker" [max]="today" formControlName="birthdate" 
                     (click)="picker.open()" />
                   <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
                   <mat-datepicker #picker startView="multi-year"></mat-datepicker>
