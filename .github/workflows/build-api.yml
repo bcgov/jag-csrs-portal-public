@@ -5,7 +5,6 @@ on:
   pull_request:
     branches:
       - 'main'
-      - 'infra_adjustment'
       # as per https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onpushpull_requestbranchestags 
     paths:
       - 'src/backend/**'
