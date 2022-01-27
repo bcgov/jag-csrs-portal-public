@@ -85,14 +85,15 @@ jobs:
         env:
           COMPOSE_DOCKER_CLI_BUILD: 1
           DOCKER_BUILDKIT: 1
-          CONTEXT: ./src/backend/Csrs.Services.FileManager
+          CONTEXT: ./src/backend
+
           # As of recently we have enough permission to manipulate RBAC and creating imagestream under tools. So going forward 
           # image from tool namespace can be pulled and used in dev, test, prod.
           # Accordingly the following (older mode of doing things) should be changed/updated to reflect better practice.
           # However for first iteration still using older mode/style until I get chance to do the adjustment and cleanup
           IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{env.env}}/${{env.api}}:${{env.env}}
         run: |
-          docker build -f Dockerfile.rhel8 \
+          docker build -f ./src/backend/Csrs.Services.FileManager/Dockerfile.rhel8 \
             --tag ${IMAGE} \
             ${CONTEXT}
           docker push ${IMAGE}
