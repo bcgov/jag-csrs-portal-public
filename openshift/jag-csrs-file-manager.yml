@@ -117,47 +117,37 @@ objects:
                 secretKeyRef:
                   name: ${SPLUNK_CONFIG_NAME}
                   key: SPLUNK_INDEX
-            - name: OAUTH_CLIENTID
-              valueFrom:
-                secretKeyRef:
-                  name: ${OAUTH_CONFIG_NAME}
-                  key: OAUTH__CLIENTID
-            - name: OAUTH_OAUTHURL
+            - name: SHAREPOINT_STS_TOKEN_URI
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__OAUTHURL
-            - name: OAUTH_PASSWORD
+            - name: SHAREPOINT_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__PASSWORD
-            - name: OAUTH_RESOURCEURL
-              valueFrom:
-                secretKeyRef:
-                  name: ${OAUTH_CONFIG_NAME}
-                  key: OAUTH__RESOURCEURL
-            - name: OAUTH_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: ${OAUTH_CONFIG_NAME}
-                  key: OAUTH__SECRET
-            - name: OAUTH_USERNAME
+            - name: SHAREPOINT_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
                   key: OAUTH__USERNAME
-            - name: RELYING_PARTY_ID
+            - name: SHAREPOINT_RELYING_PARTY_IDENTIFIER
               valueFrom:
                 secretKeyRef:
                   name: ${OAUTH_CONFIG_NAME}
-                  key: RELYING_PARTY_ID                 
+                  key: SHAREPOINT_RELYING_PARTY_IDENTIFIER                 
             # Would need adjustments ; SharePoint API GW EndPoint    
-            - name: APIGATEWAY_BASEPATH_SP
+            - name: SHAREPOINT_ODATA_URI
               valueFrom:
                 secretKeyRef:
-                  name: ${OAUTH_CONFIG_NAME}
+                  name: ${FILEMANAGER_CONFIG_NAME}
                   key: APIGATEWAY_BASEPATH_SP
+            - name: SHAREPOINT_NATIVE_BASE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ${FILEMANAGER_CONFIG_NAME}
+                  key: SHAREPOINT_NATIVE_BASE_URI                  
             resources:
               limits:
                 cpu: 250m
