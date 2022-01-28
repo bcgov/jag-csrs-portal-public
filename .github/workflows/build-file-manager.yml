@@ -4,14 +4,11 @@ on:
   push:
   pull_request:
     branches:
-      #- 'main'
-      - 'file_manager_infra'
+      - 'main'
       # as per https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onpushpull_requestbranchestags 
-    # temporarily commenting out to ensure ease of triggering a build without being super specific
-    #paths:
-    #  - 'src/backend/Csrs.Services.FileManager/**'
+    paths:
+      - 'src/backend/Csrs.Services.FileManager/**'
 
- 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
