@@ -8,6 +8,7 @@ app/**/*.js
 app/**/*.js.map
 openshift/.jag-csrs.env
 openshift/.image-pull-enabler-config.env
+openshift/.image-pusher-config.env
 # dependencies
 node_modules/
 bower_components/

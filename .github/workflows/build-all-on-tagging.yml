@@ -1,7 +1,7 @@
 # This is the workflow that creates a new image for CSRS front end
 # Credit goes to Suganth /his CDDS and SCSS templates
 
-name: Main - Build Image and Push to Openshift Registry for Dev Deployment
+name: Main - Build Image and Push to Openshift Registry for non DEV Deployment
 
 # Controls when the workflow will run
 on:
@@ -69,8 +69,8 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}
-          username: ${{secrets.OPENSHIFT_BUILDER_SA_USERNAME}}
-          password: ${{secrets.OPENSHIFT_BUILDER_SA_PASSWORD}}
+          username: ${{secrets.OPENSHIFT_BUILDER_SA_USERNAME_TOOLs}}
+          password: ${{secrets.OPENSHIFT_BUILDER_SA_PASSWORD_TOOLS}}
 
 
       #Build and push image to OpenShift Image stream
