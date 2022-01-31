@@ -46,7 +46,7 @@ jobs:
       - name: Get git tag
         id: tag
         run: |
-          tag=$(echo $(git tag --points-at HEAD)
+          tag=$(echo $(git tag --points-at HEAD))
           echo "gittag=$tag" >> $GITHUB_ENV
       
       - name: env variables
