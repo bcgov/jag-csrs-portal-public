@@ -33,7 +33,7 @@ jobs:
     env:
       app: ${{github.event.inputs.app}}
       #env: ${{github.event.inputs.env}}
-      app_from_gh_secret: ${{ secrets.APP_NAME }}
+      app_from_gh_secret: ${{ secrets.APP_NAME_BASE}}
       #env_from_gh_secret: ${{secrets.OPENSHIFT_ENV_TAG}}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
