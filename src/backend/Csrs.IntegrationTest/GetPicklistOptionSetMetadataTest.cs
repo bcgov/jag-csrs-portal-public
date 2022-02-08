@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using Csrs.Api.Models;
 using System.Linq;
 
-namespace Csrs.TntegrationTest
+namespace Csrs.IntegrationTest
 {
 
 

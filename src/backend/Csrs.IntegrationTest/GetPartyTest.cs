@@ -11,7 +11,7 @@ using System.Globalization;
 //using Microsoft.OData;
 using PickLists = Csrs.Api.Models.PickupLists;
 
-namespace Csrs.TntegrationTest
+namespace Csrs.IntegrationTest
 {
     public class GetPartyTest : DynamicsClientTestBase
     {

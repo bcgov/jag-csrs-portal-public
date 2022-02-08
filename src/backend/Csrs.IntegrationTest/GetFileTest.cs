@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Csrs.TntegrationTest
+namespace Csrs.IntegrationTest
 {
     public class GetFileTest : DynamicsClientTestBase
     {

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Xunit;
 
-namespace Csrs.TntegrationTest
+namespace Csrs.IntegrationTest
 {
     internal class DebugOnlyFact : FactAttribute
     {

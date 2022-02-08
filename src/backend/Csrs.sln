@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharePoint", "Csrs.Interfac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Csrs.Interfaces.Dynamics", "Csrs.Interfaces.Dynamics\Csrs.Interfaces.Dynamics.csproj", "{35218357-3E90-4C8D-BD3B-2F89DCFB33B8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csrs.TntegrationTest", "Csrs.TntegrationTest\Csrs.TntegrationTest.csproj", "{83EE5B16-54F7-4953-8F27-74BB97AAAB5A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Csrs.IntegrationTest", "Csrs.IntegrationTest\Csrs.IntegrationTest.csproj", "{83EE5B16-54F7-4953-8F27-74BB97AAAB5A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

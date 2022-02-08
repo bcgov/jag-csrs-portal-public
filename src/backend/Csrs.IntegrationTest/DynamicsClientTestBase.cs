@@ -7,7 +7,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Csrs.TntegrationTest
+namespace Csrs.IntegrationTest
 {
     public abstract class DynamicsClientTestBase
     {
