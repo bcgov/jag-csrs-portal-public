@@ -31,6 +31,8 @@ jobs:
   build-push-image:
     # The type of runner that the job will run on
     runs-on: ubuntu-20.04
+
+    #https://stackoverflow.com/a/70868036
     environment: ${{ github.event.inputs.env }}
     env:
       app: ${{github.event.inputs.app}}
@@ -123,6 +125,9 @@ jobs:
       - name: Authenticate OC Env Specific SA
         uses: redhat-actions/oc-login@v1
         env:
+          #filling out all these values with  github environment specific values if defined in the scope
+          # of environment
+          #If not defined then the values are being looked up in the repository context
           OPENSHIFT_NAMESPACE: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
           OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEPLOYER_SA_USERNAME}}
           #OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEFAULT_SA_USERNAME}}
