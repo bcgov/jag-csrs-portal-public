@@ -121,17 +121,19 @@ objects:
                 cpu: 125m
                 memory: 512Mi
             # Took away readiness and liveness probe until those end points are ready
-    triggers:
-      - type: ConfigChange
-      - type: ImageChange
-        imageChangeParams:
-          automatic: true
-          containerNames:
-            - ${COMPONENT_NAME}
-          from:
-            kind: ImageStreamTag
-            namespace: ${OC_NAMESPACE}-tools
-            name: ${COMPONENT_NAME}:${IMAGE_TAG}
+    # Would trigger deployment from GitHub Actions by using dc patch
+    # Hence taking out the following trigger would make sense
+    # triggers:
+    #  - type: ConfigChange
+    #  - type: ImageChange
+    #    imageChangeParams:
+    #      automatic: true
+    #      containerNames:
+    #        - ${COMPONENT_NAME}
+    #      from:
+    #        kind: ImageStreamTag
+    #        namespace: ${OC_NAMESPACE}-tools
+    #        name: ${COMPONENT_NAME}:${IMAGE_TAG}
   status: {}
 
 

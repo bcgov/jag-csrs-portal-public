@@ -18,10 +18,12 @@ on:
             description: 'App Name (jag-csrs)'    
             required: true
             default: jag-csrs
-        #env:
-        #    description: 'Image Target Env'     
-        #    required: true
-        #    default: 'dev'
+        env:
+            #change this to suit your need/environment that you are targetting
+            #note to self : restrict who can execute this workflow
+            description: 'Image Target Env'
+            required: true
+            default: 'test'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -32,9 +34,13 @@ jobs:
     environment: ${{ github.event.inputs.env }}
     env:
       app: ${{github.event.inputs.app}}
-      #env: ${{github.event.inputs.env}}
+      env: ${{github.event.inputs.env}}
       app_from_gh_secret: ${{ secrets.APP_NAME_BASE}}
-      #env_from_gh_secret: ${{secrets.OPENSHIFT_ENV_TAG}}
+
+      # by default on tagging code we are building and deploying tagged build to test environment
+      # If we want to do that to dev or prod then that has to be via manual trigger of Github
+      # workflow (as of now).
+      env_from_gh_secret: ${{secrets.OPENSHIFT_TEST_ENV_TAG}}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -55,6 +61,10 @@ jobs:
 
           if [[ -z "$app" ]]; then
             echo "app=$app_from_gh_secret" >> $GITHUB_ENV
+          fi
+
+          if [[ -z "$env" ]]; then
+            echo "env=$env_from_gh_secret" >> $GITHUB_ENV
           fi  
           
       - name: print env variables
@@ -63,6 +73,7 @@ jobs:
 
           echo "Release Application: ${{ env.app }}"
           echo "Release Git Sha: ${{env.gittag}}"
+          echo "Release Git Sha: ${{env.env}}"
           
        #Login to OpenShift Container Repository
       - name: Login to OpenShift Container Repository
@@ -84,7 +95,7 @@ jobs:
           docker build \
             --tag ${IMAGE} \
             ${CONTEXT}
-            docker push ${IMAGE} 
+            docker push ${IMAGE}
       - name: Build & Push API Image to Openshift Image Stream
         env:
           COMPOSE_DOCKER_CLI_BUILD: 1
@@ -106,28 +117,27 @@ jobs:
           docker build -f ./src/backend/Csrs.Services.FileManager/Dockerfile.rhel8 \
             --tag ${IMAGE} \
             ${CONTEXT}
-            docker push ${IMAGE}             
-      # Would uncomment when we are able to execute patch on dc     
+          docker push ${IMAGE}
+
       # Login to Openshift using OC SA and Token of respective env.
-      #- name: Authenticate OC Env Specific SA
-      #  uses: redhat-actions/oc-login@v1
-      #  env:
-      #    OPENSHIFT_NAMESPACE: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
-      #    #OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEPLOYER_SA_USERNAME}}
-      #    OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEFAULT_SA_USERNAME}}
-      #  with:
-      #    openshift_server_url: ${{secrets.OPENSHIFT_SERVER_URL}}
-      #    #openshift_token: ${{secrets.OPENSHIFT_DEPLOYER_SA_PASSWORD}}
-      #    openshift_token: ${{secrets.OPENSHIFT_DEFAULT_SA_TOKEN}}
-      #    namespace: ${OPENSHIFT_NAMESPACE}
+      - name: Authenticate OC Env Specific SA
+        uses: redhat-actions/oc-login@v1
+        env:
+          OPENSHIFT_NAMESPACE: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
+          OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEPLOYER_SA_USERNAME}}
+          OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEFAULT_SA_USERNAME}}
+        with:
+          openshift_server_url: ${{secrets.OPENSHIFT_SERVER_URL}}
+          openshift_token: ${{secrets.OPENSHIFT_DEPLOYER_SA_PASSWORD}}
+          openshift_token: ${{secrets.OPENSHIFT_DEFAULT_SA_TOKEN}}
+          namespace: ${OPENSHIFT_NAMESPACE}
       
-      # The steps below would not work until some additional role binding work is done
-      # On corresponding namesapce. However at present none of us has that privilege.
-      # Versions the deployment config of the application with release version number - 
       # This change will trigger a deployment 
-      #- name: Labelling DC to release version
-      #  env:
-      #    appName: ${{ env.app }}
-      #    openshiftEnvNamespace: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
-      #  run: |
-      #    oc patch dc ${appName} -n ${openshiftEnvNamespace} --patch '{"spec":{"template":{"metadata":{"labels":{"version":"${{ env.gitsha }}"}}}}}'
+      - name: Labelling DC and image tag to release version
+        env:
+          appName: ${{ env.app }}
+          openshiftEnvNamespace: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
+        run: |
+          oc patch dc ${appName} -n ${openshiftEnvNamespace} --patch '{"spec":{"template":{ "spec": {"containers":[{"name": "${{env.app}}-file-manager", "image":"${{env.app}}-file-manager:${{env.gittag}}"}]},"metadata":{"labels":{"version":"${{env.gittag}}"}}}}}'
+          oc patch dc ${appName} -n ${openshiftEnvNamespace} --patch '{"spec":{"template":{ "spec": {"containers":[{"name": "${{env.app}}-api", "image":"${{env.app}}-api:${{env.gittag}}"}]},"metadata":{"labels":{"version":"${{env.gittag}}"}}}}}'
+          oc patch dc ${appName} -n ${openshiftEnvNamespace} --patch '{"spec":{"template":{ "spec": {"containers":[{"name": "${{env.app}}-frontend", "image":"${{env.app}}-frontend:${{env.gittag}}"}]},"metadata":{"labels":{"version":"${{env.gittag}}"}}}}}'
