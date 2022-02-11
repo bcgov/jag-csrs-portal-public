@@ -42,7 +42,7 @@ jobs:
       # by default on tagging code we are building and deploying tagged build to test environment
       # If we want to do that to dev or prod then that has to be via manual trigger of Github
       # workflow (as of now).
-      env_from_gh_secret: ${{secrets.OPENSHIFT_TEST_ENV_TAG}}
+      env_from_gh_secret: ${{secrets.OPENSHIFT_ENV_TAG}}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -74,8 +74,8 @@ jobs:
         run: |
 
           echo "Release Application: ${{ env.app }}"
-          echo "Release Git Sha: ${{env.gittag}}"
-          echo "Release Git Sha: ${{env.env}}"
+          echo "Release Git tag: ${{env.gittag}}"
+          echo "Release Git env: ${{env.env}}"
           
        #Login to OpenShift Container Repository
       - name: Login to OpenShift Container Repository
