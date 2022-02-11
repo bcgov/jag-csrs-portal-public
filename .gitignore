@@ -7,6 +7,7 @@ tmp/
 app/**/*.js
 app/**/*.js.map
 openshift/.jag-csrs.env
+openshift/.jag-csrs-test.env
 openshift/.image-pull-enabler-config.env
 openshift/.image-pusher-config.env
 # dependencies
