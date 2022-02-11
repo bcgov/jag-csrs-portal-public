@@ -1,7 +1,7 @@
 # This is the workflow that creates a new image for CSRS front end
 # Credit goes to Suganth /his CDDS and SCSS templates
 
-name: Main - Build Image and Push to Openshift Registry for non DEV Deployment
+name:  Build Images for all three components and Push to Openshift Registry for non DEV Deployment
 
 # Controls when the workflow will run
 on:
@@ -125,11 +125,11 @@ jobs:
         env:
           OPENSHIFT_NAMESPACE: ${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{ env.env }}
           OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEPLOYER_SA_USERNAME}}
-          OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEFAULT_SA_USERNAME}}
+          #OPENSHIFT_USER: ${{secrets.OPENSHIFT_DEFAULT_SA_USERNAME}}
         with:
           openshift_server_url: ${{secrets.OPENSHIFT_SERVER_URL}}
           openshift_token: ${{secrets.OPENSHIFT_DEPLOYER_SA_PASSWORD}}
-          openshift_token: ${{secrets.OPENSHIFT_DEFAULT_SA_TOKEN}}
+          #openshift_token: ${{secrets.OPENSHIFT_DEFAULT_SA_TOKEN}}
           namespace: ${OPENSHIFT_NAMESPACE}
       
       # This change will trigger a deployment 
