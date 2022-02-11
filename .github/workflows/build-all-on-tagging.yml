@@ -13,6 +13,8 @@ on:
   
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+    branches:
+      - csrs_336
     inputs:
         app:
             description: 'App Name (jag-csrs)'    
