@@ -1,3 +1,4 @@
+name: ZAP Scan
 on:
   schedule:
     # Experimental schedule;
