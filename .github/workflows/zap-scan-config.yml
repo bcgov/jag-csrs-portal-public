@@ -3,7 +3,7 @@ on:
   schedule:
     # Experimental schedule;
     # HAve to be mindful of load on shared system
-    - cron:  '05 23 * * 5'
+    - cron:  '20 07 * * 6'
 
 jobs:
   zap_scan:
