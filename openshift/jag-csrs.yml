@@ -84,6 +84,11 @@ objects:
           app.kubernetes.io/instance: ${COMPONENT_NAME}
           app.openshift.io/runtime: angularjs
       spec:
+        volumes:
+          - name: volume-oidc-config
+            configMap:
+              name: oidc-config
+              defaultMode: 420
         containers:
           # due to permission issue not using tools space; dev is pulling from dev
           - image: >-
@@ -117,6 +122,9 @@ objects:
               requests:
                 cpu: 125m
                 memory: 512Mi
+            volumeMounts:
+              - name: volume-oidc-config
+                mountPath: /usr/share/nginx/html/assets/config/
             # Took away readiness and liveness probe until those end points are ready
     triggers:
       - type: ConfigChange
@@ -131,7 +139,6 @@ objects:
             # need to update it to use tools space
             name: ${COMPONENT_NAME}:${OC_ENV}
   status: {}
-
 
 
 ### JAG-csrs Service ###
