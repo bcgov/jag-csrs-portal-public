@@ -158,24 +158,26 @@ objects:
     sessionAffinity: None
     type: ClusterIP
 
-#- apiVersion: route.openshift.io/v1
-#  kind: Route
-#  metadata:
-#    name: ${ROUTE_PREFIX}
-#    namespace: ${OC_NAMESPACE}-${OC_ENV}
-#  annotations:
-#    # if we do not use sticky-session, disable_cookies needs to be true
-#    haproxy.router.openshift.io/disable_cookies: "true"
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: ${ROUTE_PREFIX}
+    namespace: ${OC_NAMESPACE}-${OC_ENV}
+  annotations:
+    # if we do not use sticky-session, disable_cookies needs to be true
+    haproxy.router.openshift.io/disable_cookies: "true"
 #    # balance algorithm
-#    haproxy.router.openshift.io/balance: roundrobin
-#  spec:
-#    host: ${ROUTE_PREFIX}-${OC_NAMESPACE}-${OC_ENV}.${DNS}
-#    to:
-#      kind: Service
-#      name: ${COMPONENT_NAME}
-#    port:
-#     targetPort: http
-#    tls:
-#      termination: edge
-#      insecureEdgeTerminationPolicy: Redirect
-#    wildcardPolicy: None
+    haproxy.router.openshift.io/balance: roundrobin
+  spec:
+    host: ${ROUTE_PREFIX}-${OC_NAMESPACE}-${OC_ENV}.${DNS}
+    to:
+      kind: Service
+      name: ${COMPONENT_NAME}
+    port:
+     targetPort: http
+    tls:
+      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
+      certificate: ${CERT}
+      key: ${KEY}
+    wildcardPolicy: None
