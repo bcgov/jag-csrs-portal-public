@@ -166,7 +166,7 @@ objects:
   annotations:
     # if we do not use sticky-session, disable_cookies needs to be true
     haproxy.router.openshift.io/disable_cookies: "true"
-#    # balance algorithm
+    # balance algorithm
     haproxy.router.openshift.io/balance: roundrobin
   spec:
     host: ${ROUTE_PREFIX}-${OC_NAMESPACE}-${OC_ENV}.${DNS}
