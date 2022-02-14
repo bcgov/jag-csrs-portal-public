@@ -98,7 +98,8 @@ objects:
           app.openshift.io/runtime: dotnet
       spec:
         containers:
-          # due to permission issue not using tools space; dev is pulling from dev
+          # due to permission issue we were not using tools space; dev is pulling from dev
+          # Now the permission issue is no longer there and should be pulling from tools
           - image: >-
               image-registry.openshift-image-registry.svc:5000/${OC_NAMESPACE}-${OC_ENV}/${APP_NAME}:${OC_ENV}
             name: ${API_COMPONENT_NAME}
@@ -178,9 +179,10 @@ objects:
                   key: APIGATEWAY_BASEPATH
             - name: BCEID_URL
               value: ${BCEID_URL}
+            # Yet to deal with proper resource allocation
             resources:
               limits:
-                cpu: 250m
+                cpu: 500m
                 memory: 1000Mi
               requests:
                 cpu: 250m

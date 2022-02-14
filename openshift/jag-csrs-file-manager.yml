@@ -148,9 +148,10 @@ objects:
                 secretKeyRef:
                   name: ${FILEMANAGER_CONFIG_NAME}
                   key: SHAREPOINT_NATIVE_BASE_URI
+            # Yet to deal with proper resource allocation
             resources:
               limits:
-                cpu: 250m
+                cpu: 500m
                 memory: 1000Mi
               requests:
                 cpu: 250m
