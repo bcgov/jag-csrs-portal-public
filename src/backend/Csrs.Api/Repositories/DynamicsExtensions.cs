@@ -1,6 +1,8 @@
 ﻿using Csrs.Api.Models;
 using Csrs.Interfaces.Dynamics.Models;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Rest;
+using System.Net;
 
 namespace Csrs.Interfaces.Dynamics
 {
@@ -23,6 +25,56 @@ namespace Csrs.Interfaces.Dynamics
             string filter = $"ssg_bceid_guid eq '{bceid}' and statuscode eq {Active}";
             var parties = await dynamicsClient.Ssgcsrsparties.GetAsync(filter: filter, orderby: orderby, cancellationToken: cancellationToken);
             return parties;
+        }
+
+        public static async Task<bool> FileExistsAsync(this IDynamicsClient dynamicsClient, string id, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(dynamicsClient);
+
+            if (string.IsNullOrEmpty(id))
+            {
+                return false;
+            }
+
+            try
+            {
+                List<string> select = new() { "ssg_csrsfileid" };
+                _ = await dynamicsClient.Ssgcsrsfiles.GetByKeyAsync(id, select: select, cancellationToken: cancellationToken);
+                return true;
+            }
+            catch (HttpOperationException exception) when (exception.Response?.StatusCode == HttpStatusCode.NotFound)
+            {
+                return false;
+            }
+        }
+
+        public static async Task<MicrosoftDynamicsCRMssgCsrsfile> GetFileByPartyAndId(this IDynamicsClient dynamicsClient, string partyId, string fileId, CancellationToken cancellationToken)
+        {
+            
+            ArgumentNullException.ThrowIfNull(dynamicsClient);
+
+            if (string.IsNullOrEmpty(partyId) || string.IsNullOrEmpty(fileId))
+            {
+                return null;
+            }
+
+            try
+            {
+                
+                var filter = $"(_ssg_recipient_value eq {partyId} or _ssg_payor_value eq {partyId}) and ssg_csrsfileid eq {fileId}";
+                var select = new List<string> { "ssg_csrsfileid" };
+
+                var files = await dynamicsClient.Ssgcsrsfiles.GetAsync(filter: filter, select: select, cancellationToken: cancellationToken);
+
+                if (files.Value.Count == 0) return null;
+
+                return files.Value[0];
+
+            }
+            catch (HttpOperationException exception) when (exception.Response?.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
         }
 
         public static async Task<string> GetPartyIdByBCeIdAsync(this IDynamicsClient dynamicsClient, string bceid, CancellationToken cancellationToken)
@@ -89,9 +141,14 @@ namespace Csrs.Interfaces.Dynamics
             List<string> select = new List<string> { "ssg_csrsfileid" };
             List<string> orderby = new List<string> { "modifiedon desc" };
 
-            MicrosoftDynamicsCRMssgCsrsfileCollection files = await dynamicsClient.Ssgcsrsfiles.GetAsync(select: select, orderby: orderby, filter: filter, expand: null, cancellationToken: cancellationToken);
-
-            return files;
+            try
+            {
+                return await dynamicsClient.Ssgcsrsfiles.GetAsync(select: select, orderby: orderby, filter: filter, expand: null, cancellationToken: cancellationToken);
+            }
+            catch (HttpOperationException exception) when (exception.Response?.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
 
         }
         public static async Task<MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection> GetCommunicationMessagesByFile(this IDynamicsClient dynamicsClient, string fileId, CancellationToken cancellationToken)
@@ -196,5 +253,25 @@ namespace Csrs.Interfaces.Dynamics
 
             return values;
         }
+
+        public static async Task<string> GetSharepointDocumentLocationIdByRelatveUrl(this IDynamicsClient dynamicsClient, string relativeUrl, CancellationToken cancellationToken)
+        {
+            var filter = $"relativeurl eq '{relativeUrl}'";
+            var select = new List<string> { "sharepointdocumentlocationid" };
+
+            try { 
+                var locations = await dynamicsClient.Sharepointdocumentlocations.GetAsync(top: 1, null, null, filter: filter, null, null, select: select, null, cancellationToken);
+
+                if (locations.Value.Count == 0) return null;
+
+                return locations.Value[0].Sharepointdocumentlocationid;
+            } 
+            catch (HttpOperationException exception) when (exception.Response?.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+
+        }
+
     }
 }
