@@ -12,9 +12,8 @@ on:
       - '*'
   
   # Allows you to run this workflow manually from the Actions tab
+  # Yet to add extra input variable to supply desired tag number
   workflow_dispatch:
-    branches:
-      - csrs_336
     inputs:
         app:
             description: 'App Name (jag-csrs)'    
