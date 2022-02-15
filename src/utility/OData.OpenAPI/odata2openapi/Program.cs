@@ -836,7 +836,14 @@ namespace odata2openapi
                     definition.Value.Properties = dictionary;
                     if (definition.Value.AllOf != null)
                     {
-                        definition.Value.AllOf.Clear();
+                        // remove any all of that does not refer to a base class or crmbaseentity
+                        var allOfs = definition.Value.AllOf.Where(_ => _.Reference is null || _.Reference.Id == "Microsoft.Dynamics.CRM.crmbaseentity").ToArray();
+
+                        foreach (var allOf in allOfs)
+                        {
+                            definition.Value.AllOf.Remove(allOf);
+                        }
+
                     }
 
                     // Clear out the example if it exists
@@ -1079,11 +1086,11 @@ namespace odata2openapi
             "Update entity in ssg_ijssbccourtlocations",
             //"Delete entity from ssg_csrsbccourtlevels",
             
-            "Get entities from activitypointers",
-            "Add new entity to activitypointers",
-            "Get entity from activitypointers by key",
+            //"Get entities from activitypointers",
+            //"Add new entity to activitypointers",
+            //"Get entity from activitypointers by key",
             //"Update entity in activitypointers",
-            "Delete entity from activitypointers",
+            //"Delete entity from activitypointers",
             //
             "Get entities from sharepointsites",
             "Get entity from sharepointsites by key",
