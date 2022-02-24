@@ -11,6 +11,7 @@ using Grpc.Net.Client.Configuration;
 using Serilog;
 using Csrs.Interfaces.Dynamics;
 using System.Net;
+using static Csrs.Services.FileManager.FileManager;
 using Csrs.Services.FileManager;
 
 namespace Microsoft.Extensions.DependencyInjection;
