@@ -10,6 +10,8 @@ using Grpc.Core;
 using Grpc.Net.Client.Configuration;
 using Serilog;
 using Csrs.Interfaces.Dynamics;
+using System.Net;
+using Csrs.Services.FileManager;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -104,7 +106,7 @@ public static class WebApplicationBuilderExtensions
         string address = configuration.Address;
 
         // determine if we are using http or https
-        ChannelCredentials credentials;
+        /*ChannelCredentials credentials;
 
         bool? secure = configuration.Secure;
         if (secure.HasValue && secure.Value)
@@ -117,18 +119,53 @@ public static class WebApplicationBuilderExtensions
             logger.Information("Using insecure channel for File Manager service");
             credentials = ChannelCredentials.Insecure;
         }
-        credentials = ChannelCredentials.SecureSsl;
+        credentials = ChannelCredentials.SecureSsl;*/
         logger.Information("Using file manager service {Address}", address);
 
-        builder.Services.AddSingleton(services =>
+        // Return "true" to allow certificates that are untrusted/invalid
+        var httpHandler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback =
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+
+        var httpClient = new HttpClient(httpHandler);
+        // set default request version to HTTP 2.  Note that Dotnet Core does not currently respect this setting for all requests.
+        httpClient.DefaultRequestVersion = HttpVersion.Version20;
+
+        var initialChannel = GrpcChannel.ForAddress(address, new GrpcChannelOptions { HttpClient = httpClient, MaxSendMessageSize = null, MaxReceiveMessageSize = null });
+
+        var initialClient = new FileManagerClient(initialChannel);
+        // call the token service to get a token.
+        var tokenRequest = new TokenRequest
+        {
+            Secret = "a7b9d19f-17e2-4909-a149-4f775fbab6f5"
+        };
+
+        var tokenReply = initialClient.GetToken(tokenRequest);
+
+        if (tokenReply != null && tokenReply.ResultStatus == ResultStatus.Success)
+        {
+            // Add the bearer token to the client.
+
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {tokenReply.Token}");
+
+            // var channel = GrpcChannel.ForAddress(address, new GrpcChannelOptions { HttpClient = httpClient });
+
+            ///services.AddTransient(_ => new FileManagerClient(channel));
+            builder.Services.AddTransient(services =>
+            {
+                //GrpcChannel channel = services.GetRequiredService<GrpcChannel>();
+                GrpcChannel channel = GrpcChannel.ForAddress(address, new GrpcChannelOptions { HttpClient = httpClient });
+                return new FileManagerClient(channel);
+            });
+
+        }
+
+        /*builder.Services.AddSingleton(services =>
         {
 
-            // Return "true" to allow certificates that are untrusted/invalid
-            var httpHandler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback =
-                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
+            
 
             var channel = GrpcChannel.ForAddress(address, new GrpcChannelOptions
             {
@@ -146,7 +183,7 @@ public static class WebApplicationBuilderExtensions
         {
             GrpcChannel channel = services.GetRequiredService<GrpcChannel>();
             return new Csrs.Services.FileManager.FileManager.FileManagerClient(channel);
-        });
+        });*/
     }
 
     /// <summary>
