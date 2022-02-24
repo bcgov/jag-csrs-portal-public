@@ -104,28 +104,39 @@ public static class WebApplicationBuilderExtensions
         string address = configuration.Address;
 
         // determine if we are using http or https
-        ChannelCredentials credentials = ChannelCredentials.Insecure;
+        ChannelCredentials credentials;
 
         bool? secure = configuration.Secure;
         if (secure.HasValue && secure.Value)
         {
             logger.Information("Using secure channel for File Manager service");
-            //credentials = ChannelCredentials.SecureSsl;
+            credentials = ChannelCredentials.SecureSsl;
         }
         else
         {
             logger.Information("Using insecure channel for File Manager service");
-            //credentials = ChannelCredentials.Insecure;
+            credentials = ChannelCredentials.Insecure;
         }
-
+        credentials = ChannelCredentials.SecureSsl;
         logger.Information("Using file manager service {Address}", address);
 
         builder.Services.AddSingleton(services =>
         {
+
+            // Return "true" to allow certificates that are untrusted/invalid
+            var httpHandler = new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback =
+                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+            };
+
             var channel = GrpcChannel.ForAddress(address, new GrpcChannelOptions
             {
+                Credentials = credentials,
                 ServiceConfig = new ServiceConfig { LoadBalancingConfigs = { new RoundRobinConfig() } },
-                ServiceProvider = services
+                ServiceProvider = services,
+                HttpHandler = httpHandler
+
             });
 
             return channel;
