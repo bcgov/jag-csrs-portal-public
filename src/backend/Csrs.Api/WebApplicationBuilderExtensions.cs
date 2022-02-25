@@ -122,7 +122,6 @@ public static class WebApplicationBuilderExtensions
         AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
         builder.Services.AddSingleton(services =>
         {
-           
             var httpHandler = new HttpClientHandler();
             // Return "true" to allow certificates that are untrusted/invalid
             if (false)
