@@ -66,21 +66,15 @@ namespace Csrs.Services.FileManager
 
         public void Configure(KestrelServerOptions options)
         {
-            if (_options.Value.UseHttps)
-                options.ListenAnyIP(8080, configureListen =>
-                {
-                    configureListen.UseHttps(_certificateLoader.ServiceCertificate);
-                    // enable Http2, for gRPC
-                    configureListen.Protocols = HttpProtocols.Http2;
-                    configureListen.UseConnectionLogging();
-                });
-            else
-                options.ListenAnyIP(8080, configureListen =>
-                {
-                    // enable Http2, for gRPC
-                    configureListen.Protocols = HttpProtocols.Http2;
-                    configureListen.UseConnectionLogging();
-                });
+
+            options.ListenAnyIP(8080, configureListen =>
+            {
+                configureListen.UseHttps(_certificateLoader.ServiceCertificate);
+                // enable Http2, for gRPC
+                configureListen.Protocols = HttpProtocols.Http2;
+                configureListen.UseConnectionLogging();
+            });
+
 
             // Also listen on port 8088 for health checks. Note that you won't be able to do gRPC calls on this port; 
             // it is only required because the OpenShift 3.11 health check system does not seem to be compatible with HTTP2.
@@ -110,49 +104,44 @@ namespace Csrs.Services.FileManager
 
         protected override async Task ExecuteAsync(CancellationToken token)
         {
-            if (_options.Value.UseHttps)
+
+            try
             {
-                try
+                var certificate = _certificateLoader.ServiceCertificate;
+                bool loop;
                 {
-                    var certificate = _certificateLoader.ServiceCertificate;
-                    bool loop;
-                    {
-                        loop = false;
-                        var expiresAt = certificate.NotAfter - NotAfterMargin; // NotAfter is in local time.
-                        var now = DateTime.Now;
-                        var tillExpires = expiresAt - now;
-                        if (tillExpires > TimeSpan.Zero)
-                            if (tillExpires > RestartSpan)
+                    loop = false;
+                    var expiresAt = certificate.NotAfter - NotAfterMargin; // NotAfter is in local time.
+                    var now = DateTime.Now;
+                    var tillExpires = expiresAt - now;
+                    if (tillExpires > TimeSpan.Zero)
+                        if (tillExpires > RestartSpan)
+                        {
+                            // Wait until we are in the RestartSpan.
+                            var delay = tillExpires - RestartSpan
+                                        + TimeSpan.FromSeconds(new Random().Next((int) RestartSpan.TotalSeconds));
+                            if (delay.TotalMilliseconds > int.MaxValue)
                             {
-                                // Wait until we are in the RestartSpan.
-                                var delay = tillExpires - RestartSpan
-                                            + TimeSpan.FromSeconds(new Random().Next((int) RestartSpan.TotalSeconds));
-                                if (delay.TotalMilliseconds > int.MaxValue)
-                                {
-                                    // Task.Delay is limited to int.MaxValue.
-                                    await Task.Delay(int.MaxValue, token);
-                                    loop = true;
-                                }
-                                else
-                                {
-                                    await Task.Delay(delay, token);
-                                }
+                                // Task.Delay is limited to int.MaxValue.
+                                await Task.Delay(int.MaxValue, token);
+                                loop = true;
                             }
-                    }
-                    while (loop) ;
-                    // Our certificate expired, Stop the application.  OpenShift should regenerate the certificates automatically.
-                    _logger.LogInformation("Certificate expires at {CertificateExpiration}. Stopping application.", certificate.NotAfter.ToUniversalTime());
-                    _applicationLifetime.StopApplication();
+                            else
+                            {
+                                await Task.Delay(delay, token);
+                            }
+                        }
                 }
-                catch (TaskCanceledException)
-                {
-                }
+                while (loop) ;
+                // Our certificate expired, Stop the application.  OpenShift should regenerate the certificates automatically.
+                _logger.LogInformation("Certificate expires at {CertificateExpiration}. Stopping application.", certificate.NotAfter.ToUniversalTime());
+                _applicationLifetime.StopApplication();
             }
-            else
+            catch (TaskCanceledException)
             {
-                // shouldn't get here because this background should not be registered if not using HTTPS/OpenShift
-                _logger.LogInformation("Not configured to use HTTPS");
             }
+        
+
         }
     }
 

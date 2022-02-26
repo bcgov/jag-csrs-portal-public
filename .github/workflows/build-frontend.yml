@@ -8,7 +8,7 @@ on:
   # Trigger the this workflow on push/merge on main
   push:
     branches:
-      - 'main'
+      - 'grpc_troubleshooting'
   
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:

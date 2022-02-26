@@ -2,9 +2,8 @@ name: CSRS File Manager Build and Deployment
 
 on:
   push:
-  pull_request:
     branches:
-      - 'main'
+      - 'grpc_troubleshooting'
       # as per https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onpushpull_requestbranchestags 
     paths:
       - 'src/backend/Csrs.Services.FileManager/**'
