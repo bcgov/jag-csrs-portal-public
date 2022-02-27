@@ -138,7 +138,7 @@ public static class WebApplicationBuilderExtensions
             {
                 Credentials = credentials,
                 ServiceConfig = new ServiceConfig { LoadBalancingConfigs = { new RoundRobinConfig() } },
-                //ServiceProvider = services,
+                ServiceProvider = services,
                 HttpClient = httpClient
 
             });

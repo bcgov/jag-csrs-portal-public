@@ -1,4 +1,7 @@
-﻿using Csrs.Api.Extensions;
+﻿using System;
+using System.IO;
+using System.Diagnostics;
+using Csrs.Api.Extensions;
 using Csrs.Interfaces.Dynamics;
 using Csrs.Interfaces.Dynamics.Extensions;
 using Csrs.Interfaces.Dynamics.Models;
@@ -132,7 +135,11 @@ namespace Csrs.Api.Services
                 uploadResult = _fileManagerClient.UploadFile(uploadRequest);
             }catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                StackFrame stackFrame = new System.Diagnostics.StackTrace(1).GetFrame(1);
+                string fileName = stackFrame.GetFileName();
+                string methodName = stackFrame.GetMethod().ToString();
+                int lineNumber = stackFrame.GetFileLineNumber();
+                _logger.LogError(ex, "File upload failed {FileName } {MethodName} {LineNumber}",  ,methodName, lineNumber);
             }
 
             if (uploadResult != null && uploadResult.ResultStatus == ResultStatus.Success)
