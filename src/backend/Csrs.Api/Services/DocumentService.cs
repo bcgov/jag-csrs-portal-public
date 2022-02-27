@@ -136,10 +136,10 @@ namespace Csrs.Api.Services
             }catch (Exception ex)
             {
                 StackFrame stackFrame = new System.Diagnostics.StackTrace(1).GetFrame(1);
-                string fileName = stackFrame.GetFileName();
+                string srcFileName = stackFrame.GetFileName();
                 string methodName = stackFrame.GetMethod().ToString();
                 int lineNumber = stackFrame.GetFileLineNumber();
-                _logger.LogError(ex, "File upload failed {FileName } {MethodName} {LineNumber}", fileName ,methodName, lineNumber);
+                _logger.LogError(ex, "File upload failed {SrcFileName } {MethodName} {LineNumber}", srcFileName ,methodName, lineNumber);
             }
 
             if (uploadResult != null && uploadResult.ResultStatus == ResultStatus.Success)
