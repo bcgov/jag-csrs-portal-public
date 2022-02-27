@@ -139,7 +139,7 @@ namespace Csrs.Api.Services
                 string fileName = stackFrame.GetFileName();
                 string methodName = stackFrame.GetMethod().ToString();
                 int lineNumber = stackFrame.GetFileLineNumber();
-                _logger.LogError(ex, "File upload failed {FileName } {MethodName} {LineNumber}",  ,methodName, lineNumber);
+                _logger.LogError(ex, "File upload failed {FileName } {MethodName} {LineNumber}", fileName ,methodName, lineNumber);
             }
 
             if (uploadResult != null && uploadResult.ResultStatus == ResultStatus.Success)
