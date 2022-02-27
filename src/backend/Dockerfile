@@ -12,10 +12,10 @@ COPY ["Csrs.Api/Csrs.Api.csproj", "Csrs.Api/"]
 RUN dotnet restore "Csrs.Api/Csrs.Api.csproj"
 COPY . .
 WORKDIR "/src/Csrs.Api"
-RUN dotnet build "Csrs.Api.csproj" -c Release -o /app/build
+RUN dotnet build "Csrs.Api.csproj" -c Debug  -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Csrs.Api.csproj" -c Release -o /app/publish
+RUN dotnet publish "Csrs.Api.csproj" -c Debug  -o /app/publish
 
 FROM base AS final
 WORKDIR /app

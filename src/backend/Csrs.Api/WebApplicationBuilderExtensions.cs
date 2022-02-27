@@ -178,6 +178,6 @@ public static class WebApplicationBuilderExtensions
 
         // Based on the custom logic it is possible to decide whether the client considers certificate valid or not
         Console.WriteLine($"Errors: {sslErrors}");
-        return sslErrors == SslPolicyErrors.None;
+        return sslErrors == System.Net.Security.SslPolicyErrors.None;
     }    
 }
