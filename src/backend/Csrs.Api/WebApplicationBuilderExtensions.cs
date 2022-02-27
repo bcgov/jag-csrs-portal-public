@@ -128,7 +128,7 @@ public static class WebApplicationBuilderExtensions
             //Should be disabled for PROD
 
             //temporarily for troubleshooting
-            httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
+            httpHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
  
             var httpClient = new HttpClient(httpHandler);
             // set default request version to HTTP 2.  Note that Dotnet Core does not currently respect this setting for all requests.
