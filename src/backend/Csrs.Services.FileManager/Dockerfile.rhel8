@@ -7,10 +7,10 @@ COPY ["Csrs.Interfaces.SharePoint/SharePoint.csproj", "Csrs.Interfaces.SharePoin
 RUN dotnet restore "Csrs.Services.FileManager/Csrs.Services.FileManager.csproj"
 COPY . .
 WORKDIR "/src/Csrs.Services.FileManager"
-RUN dotnet build "Csrs.Services.FileManager.csproj" -c Release -o /app/build
+RUN dotnet build "Csrs.Services.FileManager.csproj" -c Debug -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "Csrs.Services.FileManager.csproj" -c Release -o /app/publish
+RUN dotnet publish "Csrs.Services.FileManager.csproj" -c Debug  -o /app/publish
 
 FROM registry.access.redhat.com/ubi8/dotnet-60-runtime AS final
 WORKDIR /opt/app-root/app

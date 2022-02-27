@@ -127,9 +127,9 @@ public static class WebApplicationBuilderExtensions
             // Return "true" to allow certificates that are untrusted/invalid
             //Should be disabled for PROD
 
-            httpHandler.ServerCertificateCustomValidationCallback = ServerCertificateCustomValidation;
-
-
+            //temporarily for troubleshooting
+            httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
+ 
             var httpClient = new HttpClient(httpHandler);
             // set default request version to HTTP 2.  Note that Dotnet Core does not currently respect this setting for all requests.
             httpClient.DefaultRequestVersion = HttpVersion.Version20;
@@ -166,18 +166,4 @@ public static class WebApplicationBuilderExtensions
         return logger;
     }
 
-    // Just for troubleshooting. From https://docs.microsoft.com/en-us/dotnet/api/system.net.http.httpclienthandler.servercertificatecustomvalidationcallback?view=net-6.0
-    private static bool ServerCertificateCustomValidation(HttpRequestMessage requestMessage, X509Certificate2 certificate, X509Chain chain, SslPolicyErrors sslErrors)
-    {
-        // It is possible inpect the certificate provided by server
-        Console.WriteLine($"Requested URI: {requestMessage.RequestUri}");
-        Console.WriteLine($"Effective date: {certificate.GetEffectiveDateString()}");
-        Console.WriteLine($"Exp date: {certificate.GetExpirationDateString()}");
-        Console.WriteLine($"Issuer: {certificate.Issuer}");
-        Console.WriteLine($"Subject: {certificate.Subject}");
-
-        // Based on the custom logic it is possible to decide whether the client considers certificate valid or not
-        Console.WriteLine($"Errors: {sslErrors}");
-        return sslErrors == System.Net.Security.SslPolicyErrors.None;
-    }    
 }
