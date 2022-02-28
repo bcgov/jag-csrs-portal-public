@@ -149,7 +149,13 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddTransient(services =>
         {
             //GrpcChannel channel = services.GetRequiredService<GrpcChannel>();
-                        //temporarily for troubleshooting
+            
+             var httpHandler = new HttpClientHandler();
+            // Return "true" to allow certificates that are untrusted/invalid
+            //Should be disabled for PROD
+
+            //temporarily for troubleshooting
+            //temporarily for troubleshooting
             httpHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
  
             var httpClient = new HttpClient(httpHandler);
