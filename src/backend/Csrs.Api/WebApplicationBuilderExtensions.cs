@@ -108,16 +108,16 @@ public static class WebApplicationBuilderExtensions
         ChannelCredentials credentials;
 
         bool? secure = configuration.Secure;
-        if (secure.HasValue && secure.Value)
+        /*if (secure.HasValue && secure.Value)
         {
             logger.Information("Using secure channel for File Manager service");
             credentials = ChannelCredentials.SecureSsl;
         }
         else
-        {
+        {*/
             logger.Information("Using insecure channel for File Manager service");
             credentials = ChannelCredentials.Insecure;
-        }
+        //}
         logger.Information("Using file manager service {Address}", address);
         //AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
