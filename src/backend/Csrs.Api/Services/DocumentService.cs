@@ -139,9 +139,8 @@ namespace Csrs.Api.Services
                     uploadResult = _fileManagerClient.UploadFile(uploadRequest);
                 }catch (Exception ex)
                 {
-                    // _logger.LogError((uploadResult == null ? "uploadResult Null" : uploadResult.ToString()));
-                    _logger.LogError(ex, (_fileManagerClient == null ? "_fileManagerClient Null" : _fileManagerClient.ToString()));
-                    //_logger.LogError(ex, $"File upload failed.  content type: {file.ContentType}, entity name : {entityName}, file name: {fileName}, folder name: {folderName} ");
+
+                    _logger.LogError(ex, $"File upload failed.  content type: {file.ContentType}, entity name : {entityName}, file name: {fileName}, folder name: {folderName} ");
                 }
 
                 if (uploadResult != null && uploadResult.ResultStatus == ResultStatus.Success)
