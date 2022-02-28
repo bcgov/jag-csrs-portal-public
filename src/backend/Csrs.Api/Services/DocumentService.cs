@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Diagnostics;
-using Csrs.Api.Extensions;
+﻿using Csrs.Api.Extensions;
 using Csrs.Interfaces.Dynamics;
 using Csrs.Interfaces.Dynamics.Extensions;
 using Csrs.Interfaces.Dynamics.Models;
@@ -31,11 +28,17 @@ namespace Csrs.Api.Services
             IUserService userService, 
             ITaskService taskService)
         {
-            _dynamicsClient = dynamicsClient ?? throw new ArgumentNullException(nameof(dynamicsClient));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _fileManagerClient = fileManagerClient ?? throw new ArgumentNullException(nameof(fileManagerClient));
-            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            _taskService = taskService ?? throw new ArgumentNullException(nameof(taskService));
+            try {
+                _dynamicsClient = dynamicsClient ?? throw new ArgumentNullException(nameof(dynamicsClient));
+                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+                _fileManagerClient = fileManagerClient ?? throw new ArgumentNullException(nameof(fileManagerClient));
+                _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+                _taskService = taskService ?? throw new ArgumentNullException(nameof(taskService));
+            }
+            catch (Exception ex) {
+                Log.Error(ex);
+                throw ex;
+            }
         }
         public async Task<IActionResult> DownloadAttachment(string entityId, string entityName, string serverRelativeUrl, string documentType, CancellationToken cancellationToken)
         {
@@ -135,11 +138,9 @@ namespace Csrs.Api.Services
                 uploadResult = _fileManagerClient.UploadFile(uploadRequest);
             }catch (Exception ex)
             {
-                StackFrame stackFrame = new System.Diagnostics.StackTrace(1).GetFrame(1);
-                string srcFileName = stackFrame.GetFileName();
-                string methodName = stackFrame.GetMethod().ToString();
-                int lineNumber = stackFrame.GetFileLineNumber();
-                _logger.LogError(ex, "File upload failed {SrcFileName } {MethodName} {LineNumber}", srcFileName ,methodName, lineNumber);
+                _logger.LogError(System.Text.Json.JsonSerializer.Serialize(uploadResult), "uploadResult");
+                _logger.LogError(System.Text.Json.JsonSerializer.Serialize(_fileManagerClient), "File Manager Client");
+                _logger.LogError(ex, $"File upload failed  {file.ContentType}, {entityName},{fileName}, {folderName} ");
             }
 
             if (uploadResult != null && uploadResult.ResultStatus == ResultStatus.Success)

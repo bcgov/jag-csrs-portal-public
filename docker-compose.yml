@@ -32,6 +32,7 @@ services:
       - ZIPKIN_URL=http://zipkin:9411/api/v2/spans
       - FILEMANAGER__ADDRESS=https://localhost:8084
       - FILEMANAGER__SECURE=true
+      - APIGATEWAY_BASEPATH=blahblah
     ports:
       - "8081:8080"
     volumes:
