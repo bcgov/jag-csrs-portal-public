@@ -443,11 +443,11 @@ editPage(stepper, index){
       nineFormGroup: this.nineFormGroup.value,
     };
     this.logger.info("formData", formData);
-    this.isDisabledSubmit = true;
+    this.isDisabledSubmit = !this.isDisabledSubmit;
 
     this.prepareData();
     //localStorage.setItem('formData', JSON.stringify(formData));
-    this.isDisabledSubmit = false;
+    this.isDisabledSubmit = !this.isDisabledSubmit;
   }
   save(){
     this.prepareData();
