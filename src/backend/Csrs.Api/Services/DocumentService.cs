@@ -36,7 +36,7 @@ namespace Csrs.Api.Services
                 _taskService = taskService ?? throw new ArgumentNullException(nameof(taskService));
             }
             catch (Exception ex) {
-                Log.Error(ex);
+                _logger.LogError(ex);
                 throw ex;
             }
         }
