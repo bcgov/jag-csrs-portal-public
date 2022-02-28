@@ -148,7 +148,24 @@ public static class WebApplicationBuilderExtensions
 
         builder.Services.AddTransient(services =>
         {
-            GrpcChannel channel = services.GetRequiredService<GrpcChannel>();
+            //GrpcChannel channel = services.GetRequiredService<GrpcChannel>();
+                        //temporarily for troubleshooting
+            httpHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
+ 
+            var httpClient = new HttpClient(httpHandler);
+            // set default request version to HTTP 2.  Note that Dotnet Core does not currently respect this setting for all requests.
+            httpClient.DefaultRequestVersion = HttpVersion.Version20;
+
+            var channel = GrpcChannel.ForAddress(address, new GrpcChannelOptions
+            {
+                Credentials = credentials,
+                ServiceConfig = new ServiceConfig { LoadBalancingConfigs = { new RoundRobinConfig() } },
+                ServiceProvider = services,
+                HttpClient = httpClient
+
+            });
+
+            //return channel;
             return new Csrs.Services.FileManager.FileManager.FileManagerClient(channel);
         });
     }
