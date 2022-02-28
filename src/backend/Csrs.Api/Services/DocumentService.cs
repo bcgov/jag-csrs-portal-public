@@ -106,60 +106,64 @@ namespace Csrs.Api.Services
         {
             UploadResult result = new UploadResult();
 
-            if (string.IsNullOrEmpty(entityId) || string.IsNullOrEmpty(entityName) || string.IsNullOrEmpty(type)) return new BadRequestResult();
+            try {
+                if (string.IsNullOrEmpty(entityId) || string.IsNullOrEmpty(entityName) || string.IsNullOrEmpty(type)) return new BadRequestResult();
 
-            var dynamicsFile = await CanAccessDocument(entityId, _userService.GetBCeIDUserId(), cancellationToken);
+                var dynamicsFile = await CanAccessDocument(entityId, _userService.GetBCeIDUserId(), cancellationToken);
 
-            if (dynamicsFile is null) return new NotFoundResult();
+                if (dynamicsFile is null) return new NotFoundResult();
 
-            var ms = new MemoryStream();
-            file.OpenReadStream().CopyTo(ms);
-            var data = ms.ToArray();
+                var ms = new MemoryStream();
+                file.OpenReadStream().CopyTo(ms);
+                var data = ms.ToArray();
 
-            string fileName = FileSystemItemExtensions.CombineNameDocumentType(file.FileName, type);
+                string fileName = FileSystemItemExtensions.CombineNameDocumentType(file.FileName, type);
 
-            var folderName = dynamicsFile.GetDocumentFolderName();
+                var folderName = dynamicsFile.GetDocumentFolderName();
 
-           // await CreateAccountDocumentLocation(dynamicsFile, folderName, cancellationToken);
+            // await CreateAccountDocumentLocation(dynamicsFile, folderName, cancellationToken);
 
-            // call the web service
-            var uploadRequest = new UploadFileRequest
-            {
-                ContentType = file.ContentType,
-                Data = ByteString.CopyFrom(data),
-                EntityName = entityName,
-                FileName = fileName,
-                FolderName = folderName
-            };
-            //This try/catch is for debugging purposes in DEV ONLY
-            var uploadResult = new UploadFileReply();
-            try
-            {
-                uploadResult = _fileManagerClient.UploadFile(uploadRequest);
-            }catch (Exception ex)
-            {
-                _logger.LogError(System.Text.Json.JsonSerializer.Serialize(uploadResult), "uploadResult");
-                _logger.LogError(System.Text.Json.JsonSerializer.Serialize(_fileManagerClient), "File Manager Client");
-                _logger.LogError(ex, $"File upload failed  {file.ContentType}, {entityName},{fileName}, {folderName} ");
+                // call the web service
+                var uploadRequest = new UploadFileRequest
+                {
+                    ContentType = file.ContentType,
+                    Data = ByteString.CopyFrom(data),
+                    EntityName = entityName,
+                    FileName = fileName,
+                    FolderName = folderName
+                };
+                //This try/catch is for debugging purposes in DEV ONLY
+                var uploadResult = new UploadFileReply();
+                try
+                {
+                    uploadResult = _fileManagerClient.UploadFile(uploadRequest);
+                }catch (Exception ex)
+                {
+                    _logger.LogError(System.Text.Json.JsonSerializer.Serialize(uploadResult), "uploadResult");
+                    _logger.LogError(System.Text.Json.JsonSerializer.Serialize(_fileManagerClient), "File Manager Client");
+                    _logger.LogError(ex, $"File upload failed.  content type: {file.ContentType}, entity name : {entityName}, file name: {fileName}, folder name: {folderName} ");
+                }
+
+                if (uploadResult != null && uploadResult.ResultStatus == ResultStatus.Success)
+                {
+                    // Update modifiedon to current time
+                    //UpdateEntityModifiedOnDate(entityName, entityId, true);
+                    _logger.LogInformation("Success");
+                    result.Message = "Uploaded Successfully";
+                    result.Uploaded = true;
+                    result.TaskCreated = await createTask(entityId, fileName, folderName, entityName, cancellationToken);
+                }
+                else
+                {
+                    _logger.LogError(uploadResult.ResultStatus.ToString());
+                    result.Uploaded = false;
+                    result.Message = uploadResult.ErrorDetail;
+                    result.TaskCreated = false;
+                }
             }
-
-            if (uploadResult != null && uploadResult.ResultStatus == ResultStatus.Success)
-            {
-                // Update modifiedon to current time
-                //UpdateEntityModifiedOnDate(entityName, entityId, true);
-                _logger.LogInformation("Success");
-                result.Message = "Uploaded Successfully";
-                result.Uploaded = true;
-                result.TaskCreated = await createTask(entityId, fileName, folderName, entityName, cancellationToken);
+            catch (Exception ex) {
+              _logger.LogError(ex, "In document service uploader");
             }
-            else
-            {
-                _logger.LogError(uploadResult.ResultStatus.ToString());
-                result.Uploaded = false;
-                result.Message = uploadResult.ErrorDetail;
-                result.TaskCreated = false;
-            }
-
             return new JsonResult(result);
         }
         /// <summary>
