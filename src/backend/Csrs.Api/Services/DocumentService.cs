@@ -139,8 +139,8 @@ namespace Csrs.Api.Services
                     uploadResult = _fileManagerClient.UploadFile(uploadRequest);
                 }catch (Exception ex)
                 {
-                    _logger.LogError(System.Text.Json.JsonSerializer.Serialize(uploadResult), "uploadResult");
-                    _logger.LogError(System.Text.Json.JsonSerializer.Serialize(_fileManagerClient), "File Manager Client");
+                    _logger.LogError(uploadResult, (uploadResult == null ? "uploadResult Null" : uploadResult.ToString()));
+                    _logger.LogError(_fileManagerClient, (_fileManagerClient == null ? "_fileManagerClient Null" : _fileManagerClient.ToString()));
                     _logger.LogError(ex, $"File upload failed.  content type: {file.ContentType}, entity name : {entityName}, file name: {fileName}, folder name: {folderName} ");
                 }
 
@@ -155,7 +155,7 @@ namespace Csrs.Api.Services
                 }
                 else
                 {
-                    _logger.LogError(uploadResult.ResultStatus.ToString());
+                    _logger.LogError("Printing Upload Result :",uploadResult.ResultStatus.ToString());
                     result.Uploaded = false;
                     result.Message = uploadResult.ErrorDetail;
                     result.TaskCreated = false;
