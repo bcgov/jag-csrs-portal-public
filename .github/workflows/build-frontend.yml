@@ -8,8 +8,9 @@ on:
   # Trigger the this workflow on push/merge on main
   push:
     branches:
-      - 'main'
-  
+      - 'csrs_sharepoint_trouble_Shooting'
+    paths:
+      - 'src/frontend/**' 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:

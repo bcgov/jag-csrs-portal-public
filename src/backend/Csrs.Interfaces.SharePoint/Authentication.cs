@@ -172,7 +172,7 @@ namespace Csrs.Interfaces
             return samlRTString;
         }
 
-        public async static Task<string> GetStsSamlToken(string spSiteUrl, string username, string password, string stsUrl)
+        public static async Task<string> GetStsSamlToken(string spSiteUrl, string username, string password, string stsUrl)
         {
             // Makes a request that conforms with the WS-Trust standard to 
             // the Security Token Service to get a SAML security token back 

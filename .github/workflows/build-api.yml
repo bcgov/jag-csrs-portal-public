@@ -3,7 +3,7 @@ name: CSRS API Build and Deployment
 on:
   push:
     branches:
-      - 'main'
+      - 'csrs_sharepoint_trouble_Shooting'
       # as per https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onpushpull_requestbranchestags 
     paths:
       - 'src/backend/**'

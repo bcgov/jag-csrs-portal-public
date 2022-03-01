@@ -148,9 +148,9 @@ namespace Csrs.Interfaces
                 )
             {
                 Authorization = null;
-                var samlST = Authentication.GetStsSamlToken(sharePointRelyingPartyIdentifier, sharePointUsername, sharePointPassword, sharePointStsTokenUri).GetAwaiter().GetResult();
+                var samlST = await Authentication.GetStsSamlToken(sharePointRelyingPartyIdentifier, sharePointUsername, sharePointPassword, sharePointStsTokenUri);
                 //FedAuthValue = 
-                Authentication.GetFedAuth(sharePointOdataUri, samlST, sharePointRelyingPartyIdentifier, _client, _CookieContainer).GetAwaiter().GetResult();
+                await Authentication.GetFedAuth(sharePointOdataUri, samlST, sharePointRelyingPartyIdentifier, _client, _CookieContainer);
             }
             // Scenario #2 - SharePoint Online (Cloud) using a Client Certificate
             else if (!string.IsNullOrEmpty(sharePointAadTenantId)
