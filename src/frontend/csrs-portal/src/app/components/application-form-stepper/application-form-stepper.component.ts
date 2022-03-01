@@ -50,6 +50,7 @@ export class ApplicationFormStepperComponent implements OnInit {
   preferredContactMethods: any = [];
 
    isEditable = false;
+   isDisabledSubmit: boolean = false;
 
   _yes: number = 867670000;
   _no: number = 867670001;
@@ -129,7 +130,7 @@ export class ApplicationFormStepperComponent implements OnInit {
 
     //this.setFormDataFromLocal();
     this.data = {
-      type: 'error',
+      //type: 'error',
       title: 'Technical error',
       weight: 'normal',
       color: 'red'
