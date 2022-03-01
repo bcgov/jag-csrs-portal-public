@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Xml;
+using Serilog;
 
 namespace Csrs.Interfaces
 {
@@ -32,6 +33,17 @@ namespace Csrs.Interfaces
             }
             return result;
         }
+
+        private static Serilog.ILogger GetLogger()
+        {
+            var logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.Debug()
+                .CreateLogger();
+
+            return logger;
+        } 
+
 
         /// <summary>
         /// Convert a RequestedSecurityToken into a RequestSecurityTokenResponse
@@ -105,41 +117,48 @@ namespace Csrs.Interfaces
 
 
 
+
         public static async Task GetFedAuth(string samlSite, string token, string relyingPartyIdentifier, HttpClient client, CookieContainer cookieContainer)
         {
-            // Encoding.UTF8.GetString(token.Token, 0, token.Token.Length)
-            string samlToken = WrapInSoapMessage(token, relyingPartyIdentifier);
+            Serilog.ILogger logger = GetLogger();
+            try {
+                // Encoding.UTF8.GetString(token.Token, 0, token.Token.Length)
+                string samlToken = WrapInSoapMessage(token, relyingPartyIdentifier);
 
-            string samlServer = samlSite.EndsWith("/") ? samlSite : samlSite + "/";
-            Uri samlServerRoot = new Uri(samlServer);
+                string samlServer = samlSite.EndsWith("/") ? samlSite : samlSite + "/";
+                Uri samlServerRoot = new Uri(samlServer);
 
-            var sharepointSite = new
-            {
-                Wctx = samlServerRoot.ToString() + "_layouts/Authenticate.aspx?Source=%2F",
-                Wtrealm = samlServerRoot.ToString(),
-                Wreply = $"{samlServerRoot}_trust/"
-            };
+                var sharepointSite = new
+                {
+                    Wctx = samlServerRoot.ToString() + "_layouts/Authenticate.aspx?Source=%2F",
+                    Wtrealm = samlServerRoot.ToString(),
+                    Wreply = $"{samlServerRoot}_trust/"
+                };
 
-            // create the body of the POST
-            string stringData = $"wa=wsignin1.0&wctx={HttpUtility.UrlEncode(sharepointSite.Wctx)}&wresult={HttpUtility.UrlEncode(samlToken)}";
+                // create the body of the POST
+                string stringData = $"wa=wsignin1.0&wctx={HttpUtility.UrlEncode(sharepointSite.Wctx)}&wresult={HttpUtility.UrlEncode(samlToken)}";
 
-            var content = new StringContent(stringData, Encoding.UTF8, "application/x-www-form-urlencoded");
+                var content = new StringContent(stringData, Encoding.UTF8, "application/x-www-form-urlencoded");
 
-            var _httpPostResponse = await client.PostAsync(sharepointSite.Wreply, content);
+                var _httpPostResponse = await client.PostAsync(sharepointSite.Wreply, content);
 
-            var cookieUri = new Uri(sharepointSite.Wreply);
+                var cookieUri = new Uri(sharepointSite.Wreply);
 
-            // if we are using an API gateway we need to restructure the fedAuth cookie.
-            if (!string.Equals(sharepointSite.Wreply, $"{cookieUri.Scheme}://{cookieUri.Authority}"))
-            {
-                var cookies = cookieContainer.GetCookies(cookieUri);
-                string fedAuthCookieValue = cookies["FedAuth"].Value;
+                // if we are using an API gateway we need to restructure the fedAuth cookie.
+                if (!string.Equals(sharepointSite.Wreply, $"{cookieUri.Scheme}://{cookieUri.Authority}"))
+                {
+                    var cookies = cookieContainer.GetCookies(cookieUri);
+                    string fedAuthCookieValue = cookies["FedAuth"].Value;
 
-                cookieContainer.Add(new Uri($"{cookieUri.Scheme}://{cookieUri.Authority}"), new Cookie("FedAuth", fedAuthCookieValue, "/"));
+                    cookieContainer.Add(new Uri($"{cookieUri.Scheme}://{cookieUri.Authority}"), new Cookie("FedAuth", fedAuthCookieValue, "/"));
+                }
+
+            }
+            catch (Exception ex) {
+              logger.Debug(ex, "Using Auth for Sharepoint");
             }
 
         }
-
 
         /// <summary>
         /// Create a SOAP request for a SAML token
