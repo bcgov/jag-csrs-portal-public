@@ -36,7 +36,7 @@ namespace Csrs.Interfaces
 
 
         private const int MaxUrlLength = 260; // default maximum URL length.
-
+        private readonly ILogger<SharePointFileManager> _logger;
         private AuthenticationResult authenticationResult;
 
         public string OdataUri { get; set; }
@@ -45,7 +45,7 @@ namespace Csrs.Interfaces
         public string ApiEndpoint { get; set; }
         public string NativeBaseUri { get; set; }
         string Authorization { get; set; }
-        private HttpClient _Client;
+        private HttpClient _client;
         private string Digest;
         private CookieContainer _CookieContainer;
         private HttpClientHandler _HttpClientHandler;
@@ -66,14 +66,16 @@ namespace Csrs.Interfaces
             public string FormDigestValue { get; set; }
         }
 
-        public SharePointFileManager(IConfiguration Configuration)
+        public SharePointFileManager(IConfiguration Configuration, ILogger<SharePointFileManager> logger)
         {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
             // create the HttpClient that is used for our direct REST calls.
             _CookieContainer = new CookieContainer();
             _HttpClientHandler = new HttpClientHandler() { UseCookies = true, AllowAutoRedirect = false, CookieContainer = _CookieContainer };
-            _Client = new HttpClient(_HttpClientHandler);
+            _client = new HttpClient(_HttpClientHandler);
 
-            _Client.DefaultRequestHeaders.Add("Accept", "application/json;odata=verbose");
+            _client.DefaultRequestHeaders.Add("Accept", "application/json;odata=verbose");
 
             // SharePoint configuration settings.
 
@@ -147,10 +149,14 @@ namespace Csrs.Interfaces
                 && !string.IsNullOrEmpty(sharePointStsTokenUri)
                 )
             {
+                // this really bad... making http requests in a constructor
+
                 Authorization = null;
-                var samlST = Authentication.GetStsSamlToken(sharePointRelyingPartyIdentifier, sharePointUsername, sharePointPassword, sharePointStsTokenUri).GetAwaiter().GetResult();
+                var samlST = Authentication.GetStsSamlToken(sharePointRelyingPartyIdentifier, sharePointUsername, sharePointPassword, sharePointStsTokenUri)
+                    .GetAwaiter().GetResult();
                 //FedAuthValue = 
-                Authentication.GetFedAuth(sharePointOdataUri, samlST, sharePointRelyingPartyIdentifier, _Client, _CookieContainer).GetAwaiter().GetResult();
+                Authentication.GetFedAuth(sharePointOdataUri, samlST, sharePointRelyingPartyIdentifier, _client, _CookieContainer, _logger)
+                    .GetAwaiter().GetResult();
             }
             // Scenario #2 - SharePoint Online (Cloud) using a Client Certificate
             else if (!string.IsNullOrEmpty(sharePointAadTenantId)
@@ -191,20 +197,19 @@ namespace Csrs.Interfaces
             // Authorization header is used for Cloud or Basic API Gateway access
             if (!string.IsNullOrEmpty(Authorization))
             {
-                _Client.DefaultRequestHeaders.Add("Authorization", Authorization);
+                _client.DefaultRequestHeaders.Add("Authorization", Authorization);
             }
 
             // Add a Digest header.  Needed for certain API operations
-            Digest = GetDigest(_Client).GetAwaiter().GetResult();
+            Digest = GetDigest(_client).GetAwaiter().GetResult();
             if (Digest != null)
             {
-                _Client.DefaultRequestHeaders.Add("X-RequestDigest", Digest);
+                _client.DefaultRequestHeaders.Add("X-RequestDigest", Digest);
             }
 
             // Standard headers for API access
-            _Client.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
-            _Client.DefaultRequestHeaders.Add("OData-Version", "4.0");
-
+            _client.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
+            _client.DefaultRequestHeaders.Add("OData-Version", "4.0");
         }
 
         public bool IsValid()
@@ -295,7 +300,7 @@ namespace Csrs.Interfaces
             };
 
             // make the request.
-            var _httpResponse = await _Client.SendAsync(_httpRequest);
+            var _httpResponse = await _client.SendAsync(_httpRequest);
             HttpStatusCode _statusCode = _httpResponse.StatusCode;
 
             if ((int)_statusCode != 200)
@@ -434,7 +439,7 @@ namespace Csrs.Interfaces
 
             // make the request.
 
-            var response = await _Client.SendAsync(endpointRequest);
+            var response = await _client.SendAsync(endpointRequest);
             HttpStatusCode _statusCode = response.StatusCode;
 
             // check to see if the folder creation worked.
@@ -465,7 +470,7 @@ namespace Csrs.Interfaces
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public async Task<Object> CreateDocumentLibrary(string listTitle, string documentTemplateUrlTitle = null)
+        public async Task<object> CreateDocumentLibrary(string listTitle, string documentTemplateUrlTitle = null)
         {
             // return early if SharePoint is disabled.
             if (!IsValid())
@@ -473,15 +478,14 @@ namespace Csrs.Interfaces
                 return null;
             }
 
-            HttpRequestMessage endpointRequest =
-                new HttpRequestMessage(HttpMethod.Post, ApiEndpoint + "web/Lists");
+            HttpRequestMessage endpointRequest = new HttpRequestMessage(HttpMethod.Post, ApiEndpoint + "web/Lists");
 
             if (string.IsNullOrEmpty(documentTemplateUrlTitle))
             {
                 documentTemplateUrlTitle = listTitle;
             }
-            var library = CreateNewDocumentLibraryRequest(documentTemplateUrlTitle);
 
+            var library = CreateNewDocumentLibraryRequest(documentTemplateUrlTitle);
 
             string jsonString = JsonConvert.SerializeObject(library);
             StringContent strContent = new StringContent(jsonString, Encoding.UTF8);
@@ -491,7 +495,7 @@ namespace Csrs.Interfaces
             endpointRequest.Headers.Add("odata-version", "3.0");
 
             // make the request.
-            var response = await _Client.SendAsync(endpointRequest);
+            var response = await _client.SendAsync(endpointRequest);
             HttpStatusCode _statusCode = response.StatusCode;
 
             if (_statusCode != HttpStatusCode.Created)
@@ -530,7 +534,7 @@ namespace Csrs.Interfaces
                     endpointRequest.Headers.Add("IF-MATCH", "*");
                     endpointRequest.Headers.Add("X-HTTP-Method", "MERGE");
                     endpointRequest.Content = strContent;
-                    response = await _Client.SendAsync(endpointRequest);
+                    response = await _client.SendAsync(endpointRequest);
                     jsonString = await response.Content.ReadAsStringAsync();
                     response.EnsureSuccessStatusCode();
                 }
@@ -560,7 +564,7 @@ namespace Csrs.Interfaces
             endpointRequest.Content = strContent;
 
             // make the request.
-            var response = await _Client.SendAsync(endpointRequest);
+            var response = await _client.SendAsync(endpointRequest);
             HttpStatusCode _statusCode = response.StatusCode;
 
             if (_statusCode != HttpStatusCode.Created)
@@ -647,7 +651,7 @@ namespace Csrs.Interfaces
             endpointRequest.Headers.Add("X-HTTP-Method", "DELETE");
 
             // make the request.
-            var response = await _Client.SendAsync(endpointRequest);
+            var response = await _client.SendAsync(endpointRequest);
 
             if (response.StatusCode == HttpStatusCode.NoContent)
             {
@@ -716,7 +720,7 @@ namespace Csrs.Interfaces
 
 
             // make the request.
-            var response = await _Client.SendAsync(endpointRequest);
+            var response = await _client.SendAsync(endpointRequest);
             string jsonString = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK)
@@ -750,7 +754,7 @@ namespace Csrs.Interfaces
             };
 
             // make the request.
-            var response = await _Client.SendAsync(endpointRequest);
+            var response = await _client.SendAsync(endpointRequest);
             string jsonString = await response.Content.ReadAsStringAsync();
 
             if (response.StatusCode == HttpStatusCode.OK)
@@ -927,7 +931,7 @@ namespace Csrs.Interfaces
                 endpointRequest.Content = byteArrayContent;
 
                 // make the request.
-                var response = await _Client.SendAsync(endpointRequest);
+                var response = await _client.SendAsync(endpointRequest);
                 var streamData = response.Content.ReadAsStringAsync().Result;
 
                 var listItemData = JsonConvert.DeserializeObject<AddFileResponse>(streamData);
@@ -994,7 +998,7 @@ namespace Csrs.Interfaces
                 //endpointRequest.Content = byteArrayContent;
 
                 // make the request.
-                var response = await _Client.SendAsync(endpointRequest);
+                var response = await _client.SendAsync(endpointRequest);
                 var streamData = await response.Content.ReadAsStringAsync();
 
                 if (response.StatusCode == HttpStatusCode.OK || response.StatusCode == HttpStatusCode.NoContent)
@@ -1037,7 +1041,7 @@ namespace Csrs.Interfaces
             };
 
             // make the request.
-            var response = await _Client.SendAsync(endpointRequest);
+            var response = await _client.SendAsync(endpointRequest);
 
 
             using (
@@ -1139,7 +1143,7 @@ namespace Csrs.Interfaces
             endpointRequest.Headers.Add("X-HTTP-Method", "DELETE");
 
             // make the request.
-            var response = await _Client.SendAsync(endpointRequest);
+            var response = await _client.SendAsync(endpointRequest);
 
             if (response.StatusCode == HttpStatusCode.NoContent)
             {
@@ -1177,7 +1181,7 @@ namespace Csrs.Interfaces
 
 
             // make the request.
-            var response = await _Client.SendAsync(endpointRequest);
+            var response = await _client.SendAsync(endpointRequest);
 
             if (response.StatusCode == HttpStatusCode.OK)
             {

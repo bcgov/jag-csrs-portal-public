@@ -34,14 +34,16 @@ import { WelcomeUserComponent } from './components/welcome-user/welcome-user.com
 import { ApplicationFormStepperComponent } from './components/application-form-stepper/application-form-stepper.component';
 import { ChildApplicationQuestionComponent } from './components/child-application-question/child-application-question.component';
 
-import { AuthConfigModule } from './auth/auth-config.module';
 import { ApiModule } from './api/api.module';
 import { Configuration } from './api/configuration';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { MailboxComponent } from './components/mailbox/mailbox.component';
 import { CommunicationComponent } from './components/communication/communication.component';
 import { MatIconModule } from '@angular/material/icon'
 import { MatDialogModule, MAT_DIALOG_DATA, MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
+
+import { OidcSecurityService, EventTypes, PublicEventsService } from 'angular-auth-oidc-client';
+import { AuthConfigModule } from './auth/auth-config.module';
+
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -50,7 +52,7 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
 import { MatTabsModule } from '@angular/material/tabs';
 import { ModalDialogComponent } from './components/modal-dialog/modal-dialog.component';
 import { FormsModule } from '@angular/forms';
-
+import { filter } from 'rxjs/operators';
 @NgModule({
   declarations: [
     AppComponent,
@@ -111,7 +113,7 @@ import { FormsModule } from '@angular/forms';
               if (token) {
                 return 'Bearer ' + token;
               }
-               return undefined;
+              return undefined;
             }
           }
         }
@@ -119,9 +121,18 @@ import { FormsModule } from '@angular/forms';
       deps: [OidcSecurityService],
       multi: false
     },
-    WindowRefService,
+     WindowRefService,
   ],
   bootstrap: [AppComponent],
 })
 
-export class AppModule {}
+export class AppModule {
+  constructor(private readonly eventService: PublicEventsService) {
+    this.eventService
+      .registerForEvents()
+      .pipe(filter((notification) => notification.type === EventTypes.ConfigLoaded))
+      .subscribe((config) => {
+        console.log('ConfigLoaded', config);
+      });
+  }
+}

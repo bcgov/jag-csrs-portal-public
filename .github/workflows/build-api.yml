@@ -2,7 +2,6 @@ name: CSRS API Build and Deployment
 
 on:
   push:
-  pull_request:
     branches:
       - 'main'
       # as per https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onpushpull_requestbranchestags 
@@ -87,7 +86,7 @@ jobs:
           #Right now do not have enough permission to manipulate RBAC, creating imagestream under tools and then using that from dev, test, prod
           IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{env.env}}/${{env.api}}:${{env.env}}
         run: |
-          docker build \
+          docker build -f ./src/backend/Dockerfile.rhel8 \
             --tag ${IMAGE} \
             ${CONTEXT}
           docker push ${IMAGE}

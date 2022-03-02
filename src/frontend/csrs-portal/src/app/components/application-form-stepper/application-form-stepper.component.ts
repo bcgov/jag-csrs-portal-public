@@ -49,7 +49,9 @@ export class ApplicationFormStepperComponent implements OnInit {
   identities: any = [];
   preferredContactMethods: any = [];
 
-   isEditable = false;
+  today = new Date();
+  isEditable = false;
+  isDisabledSubmit: boolean = true;
 
   _yes: number = 867670000;
   _no: number = 867670001;
@@ -61,6 +63,9 @@ export class ApplicationFormStepperComponent implements OnInit {
   fileId: any = '';
 
   errorMessage: any = '';
+  errorMailMessage: any = '';
+  errorIncomeMessage: any = '';
+  errorDateMessage: any = '';
 
   constructor(private _formBuilder: FormBuilder, private http: HttpClient,
       @Inject(AccountService) private accountService,
@@ -75,11 +80,8 @@ export class ApplicationFormStepperComponent implements OnInit {
 
     this.route.queryParams
     .subscribe(params => {
-      this.logger.info("params", params);
       this.partyId = params.partyId;
       this.fileId = params.fileId;
-      this.logger.info("account.partyId", this.partyId);
-      this.logger.info("account.fileId", this.fileId);
     });
 
     this.provinces = [{id: '123', value: 'British Columbia'}];
@@ -87,7 +89,10 @@ export class ApplicationFormStepperComponent implements OnInit {
     this.genders =  [{id: '123', value: 'Male'}];
     this.preferredContactMethods = [{id: '123', value: 'Email'}];
 
-    this.errorMessage = 'Error: Field is required.';
+    this.errorMessage = 'Error: Field is required. ';
+    this.errorMailMessage = 'Email address without @ or domain name. ';
+    this.errorIncomeMessage = 'Field should have numerical values. ';
+    this.errorDateMessage = 'Date cannot be in future.'
 
     this.getIdentities();
     this.getProvinces();
@@ -103,8 +108,8 @@ export class ApplicationFormStepperComponent implements OnInit {
       city: ['', Validators.required],
       province: ['', Validators.required],
       postalCode: ['', Validators.required],
-      phoneNumber: ['', Validators.required],
-      email: ['', Validators.email],
+      phoneNumber: [''],
+      email: ['', [Validators.required, Validators.email]],
       PreferredName: [''],
       saddress: [''],
       cellNumber: [''],
@@ -132,12 +137,20 @@ export class ApplicationFormStepperComponent implements OnInit {
 
     //this.setFormDataFromLocal();
     this.data = {
-      type: 'error',
+      //type: 'error',
       title: 'Technical error',
       weight: 'normal',
       color: 'red'
     };
   }
+
+  forSubmitBtn(event){
+    //this.logger.info(`event: ${event}`);
+    //this.logger.info(`event.checked: ${event.checked}`);
+    this.isDisabledSubmit = !event.checked;
+  }
+
+
   setFormDataFromLocal(){
   if (localStorage.getItem('formData')){
       let data = localStorage.getItem('formData');
@@ -148,12 +161,6 @@ export class ApplicationFormStepperComponent implements OnInit {
       if (data['sixFormGroup']){
         this.sixFormGroup.patchValue(data['sixFormGroup']);
       }
-      /*if (data['eFormGroup']){
-        this.eFormGroup.patchValue(data['eFormGroup']);
-      }
-      if (data['nineFormGroup']){
-        this.nineFormGroup.patchValue(data['nineFormGroup']);
-      }*/
   }
 }
 
@@ -176,7 +183,6 @@ export class ApplicationFormStepperComponent implements OnInit {
     this.accountService.apiAccountIdentitiesGet().subscribe({
         next: (data) => {
           this.identities = data;
-          //this.logger.info('this.identities',this.identities);
         },
         error: (e) => {
           this.logger.error('error is getIdentities', e);
@@ -195,7 +201,6 @@ export class ApplicationFormStepperComponent implements OnInit {
     this.accountService.apiAccountProvincesGet().subscribe({
       next: (data) => {
         this.provinces = data;
-        //this.logger.info('this.provinces',this.provinces);
       },
       error: (e) => {
         this.logger.error('error in getProvinces', e);
@@ -214,7 +219,6 @@ export class ApplicationFormStepperComponent implements OnInit {
     this.accountService.apiAccountGendersGet().subscribe({
       next: (data) => {
         this.genders = data;
-        //this.logger.info('this.genders',this.genders);
       },
       error: (e) => {
         this.logger.error('error is getGenders', e);
@@ -233,7 +237,6 @@ export class ApplicationFormStepperComponent implements OnInit {
     this.accountService.apiAccountPreferredcontactmethodsGet().subscribe({
       next: (data) => {
         this.preferredContactMethods = data;
-        //this.logger.info('this.preferredContactMethods',this.preferredContactMethods);
       },
       error: (e) => {
         this.logger.error('error in getPreferredcontactmethods', e);
@@ -406,11 +409,11 @@ export class ApplicationFormStepperComponent implements OnInit {
 
         this.logger.error('error in prepareData', e);
         this.data = {
-          type: 'error',
-          title: ' Error',
+          //type: 'error',
+          title: 'Error.',
           content: 'The information you entered is not valid. Please enter the information given to you by the Child Support Recalculation Service.',
           content_normal: 'If you continue to have problems, contact us at ',
-          content_link: '1-866-660-2684',
+          content_link: '1-866-660-2684.',
           weight: 'normal',
           color: 'red'
          };

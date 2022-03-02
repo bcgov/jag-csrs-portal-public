@@ -148,7 +148,7 @@ namespace Csrs.Api.Models
                 SsgPartyenrolled = GetPartyEnrolled(file.PartyEnrolled),
 
                 SsgRecalculationorderedbythecourt = ConvertToBool(file.RecalculationOrderByCourt),
-                SsgSubmissiondate = new DateTimeOffset(DateTime.Today)
+                SsgSubmissiondate = new DateTimeOffset(DateTime.Now)
 
                 //SsgSharedparenting = true; ???
                 //SsgSplitparentingarrangement = true; ??
@@ -161,7 +161,7 @@ namespace Csrs.Api.Models
             return  dynamicsFile;
         }
 
-        public static MicrosoftDynamicsCRMssgCsrsfile ToDynamicsModel(this CSRSAccountFile file)
+        public static MicrosoftDynamicsCRMssgCsrsfile ToDynamicsModel(this CSRSAccountFile file, PartyRole role)
         {
             MicrosoftDynamicsCRMssgCsrsfile dynamicsFile = new MicrosoftDynamicsCRMssgCsrsfile
             {
@@ -171,11 +171,19 @@ namespace Csrs.Api.Models
                 SsgCsrsfileid = file.FileId,
                 SsgFmepfileactive = ConvertToBool(file.IsFMEPFileActive),
                 SsgFmepfilenumber = file.FMEPFileNumber,
-                SsgSafetyalert = ConvertToBool(file.SafetyAlertRecipient),
-                SsgSafetyconcerndescription = file.RecipientSafetyConcernDescription,
-                SsgSafetyalertpayor = ConvertToBool(file.SafetyAlertPayor),
-                SsgPayorssafetyconcerndescription = file.PayorSafetyConcernDescription,
             };
+
+            if (role == PartyRole.Recipient)
+            {
+                dynamicsFile.SsgSafetyalert = ConvertToBool(file.SafetyAlertRecipient);
+                dynamicsFile.SsgSafetyconcerndescription = file.RecipientSafetyConcernDescription;
+            }
+            else
+                if (role == PartyRole.Payor)
+                {
+                    dynamicsFile.SsgSafetyalertpayor = ConvertToBool(file.SafetyAlertPayor);
+                    dynamicsFile.SsgPayorssafetyconcerndescription = file.PayorSafetyConcernDescription;
+                }
 
             return dynamicsFile;
         }
@@ -209,6 +217,7 @@ namespace Csrs.Api.Models
 
             message.MessageId = inMessage.SsgCsrscommunicationmessageid;
             message.FileId = inMessage._ssgCsrsfileValue;
+            message.FileNumber = inMessage.SsgCsrsFile.SsgFilenumber;
             message.Attachment = inMessage.SsgCsrsmessageattachment;
             message.Status = inMessage.Statuscode;
             message.Documents = documents;

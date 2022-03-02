@@ -15,12 +15,15 @@ import { LookupService } from 'app/api/api/lookup.service';
 import { Inject } from '@angular/core';
 import { LoggerService } from '@core/services/logger.service';
 import { of } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { List, Dictionary } from 'ts-generic-collections-linq';
 import { ModalDialogComponent } from 'app/components/modal-dialog/modal-dialog.component';
 import { DialogOptions } from '@shared/dialogs/dialog-options.model';
 import { Router, ActivatedRoute } from '@angular/router';
+import { OidcSecurityService, PublicEventsService } from 'angular-auth-oidc-client';
+import {MatDatepickerInputEvent} from '@angular/material/datepicker';
 
 // -- import data structure
 import {
@@ -40,6 +43,8 @@ import { DatePipe } from '@angular/common';
   templateUrl: './child-application-question.component.html',
   styleUrls: ['./child-application-question.component.scss'],
 })
+
+
 export class ChildApplicationQuestionComponent implements OnInit {
   firstFormGroup: FormGroup;
   secondFormGroup: FormGroup;
@@ -62,6 +67,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
 
   today = new Date();
   isEditable: boolean = false;
+  isDisabledSubmit: boolean = true;
   child: Child;
   _reponse: HttpResponse<any>;
 
@@ -76,9 +82,15 @@ export class ChildApplicationQuestionComponent implements OnInit {
   result: any = [];
 
   errorMessage: any = '';
+  errorMailMessage: any = '';
+  errorIncomeMessage: any = '';
+  errorDateMessage: any = '';
   tooltips: any = [];
+  isHiddens: any = [];
 
-  constructor(private _formBuilder: FormBuilder, private http: HttpClient,
+  constructor(public oidc : OidcSecurityService,
+              private eventService: PublicEventsService,
+              private _formBuilder: FormBuilder, private http: HttpClient,
               @Inject(AccountService) private accountService,
               @Inject(LookupService) private lookupService,
               @Inject(LoggerService) private logger,
@@ -94,7 +106,11 @@ export class ChildApplicationQuestionComponent implements OnInit {
     this.courtLocations =  [{id: '123', value: 'Victoria Court'}];
     this.referrals = [{id: '123', value: 'FMEP'}];
 
-    this.errorMessage = 'Error: Field is required.';
+    this.errorMessage = 'Error: Field is required. ';
+    this.errorMailMessage = 'Email address without @ or domain name. ';
+    this.errorIncomeMessage = 'Field should have numerical values. ';
+    this.errorDateMessage = 'Date cannot be in future.'
+
 
     this.tooltips = [
       'A child over the age of majority (19 in B.C.) who is still dependent on their parents. For example, due to illness, disability or pursuit of post secondary education.',
@@ -131,7 +147,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
       province: ['', Validators.required],
       postalCode: ['', Validators.required],
       phoneNumber: [''],
-      email: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]], //Validators.pattern('^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$')
       PreferredName: [''],
       saddress: [''],
       cellNumber: [''],
@@ -154,7 +170,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
       homePhoneNumber: [''],
       cellPhoneNumber: [''],
       workPhoneNumber: [''],
-      email: [''],
+      email: ['', Validators.email],
       gender: ['']
 
     });
@@ -175,7 +191,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
     this.fifthFormGroup = this._formBuilder.group({
       orderDate: [''],
       courtLocation: [''],
-      payorIncome: [''],
+      payorIncome: ['', Validators.pattern('^-?[0-9]\\d*(\\.\\d{1,2})?$')],
       recalculationOrdered: [],
       isSpecifiedIncome: [],
     });
@@ -207,7 +223,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
       secondCtrl: ['', Validators.required],
     });
     this.nineFormGroup = this._formBuilder.group({
-      secondCtrl: [''],
+      secondCtrl: ['', Validators.required],
     });
     //this.setFormDataFromLocal();
   }
@@ -244,6 +260,25 @@ export class ChildApplicationQuestionComponent implements OnInit {
       }
   }
 
+}
+
+onDateChange(event: MatDatepickerInputEvent<Date>, i: number): void {
+  var childYears = this.diff_years(event.value, new Date());
+  this.isHiddens[i] = childYears >= 19 ? true : false;
+  this.logger.warn(`childYears = ${childYears}, isHiddens[i] = ${this.isHiddens[i]}`);
+}
+
+diff_years(dt2, dt1)
+ {
+   var diff = (dt2.getTime() - dt1.getTime()) / 1000;
+   diff /= (60 * 60 * 24);
+   return Math.abs(Math.round(diff/365.25));
+ }
+
+forSubmitBtn(event){
+  //this.logger.info(`event: ${event}`);
+  //this.logger.info(`event.checked: ${event.checked}`);
+  this.isDisabledSubmit = !event.checked;
 }
 
 openDialog(inData) {
@@ -406,18 +441,25 @@ editPage(stepper, index){
       birthdate: [],
       givenNames: [],
       childDependency: [],
-      middleName: []
+      middleName: [],
     });
 
     usersArray.insert(arraylen, newUsergroup);
+    this.isHiddens.push(false);
+
   }
 
   deletechild(index){
     this.fourthFormGroup1.get('users')['controls'].splice(index,1)
+    this.isHiddens.splice(index);
   }
 
 
-  saveLater(){
+  saveLater(/*$event: MouseEvent*/) {
+    //($event.target as HTMLButtonElement).disabled = true;
+    //this.logger.info(`event.target as HTMLButtonElement).disabled = ${($event.target as HTMLButtonElement).disabled}`);
+    this.isDisabledSubmit = true;
+    this.logger.info(`this.isDisabledSubmit = ${this.isDisabledSubmit}`);
     const formData = {
       firstStep: this.firstFormGroup.value,
       secondFormGroup: this.secondFormGroup.value,
@@ -433,6 +475,7 @@ editPage(stepper, index){
 
     this.prepareData();
     //localStorage.setItem('formData', JSON.stringify(formData));
+    this.isDisabledSubmit = false;
   }
   save(){
     this.prepareData();

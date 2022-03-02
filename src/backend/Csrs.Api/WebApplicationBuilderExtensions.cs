@@ -10,6 +10,7 @@ using Grpc.Core;
 using Grpc.Net.Client.Configuration;
 using Serilog;
 using Csrs.Interfaces.Dynamics;
+using System.Net;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -107,35 +108,24 @@ public static class WebApplicationBuilderExtensions
         ChannelCredentials credentials;
 
         bool? secure = configuration.Secure;
-        if (secure.HasValue && secure.Value)
-        {
-            logger.Information("Using secure channel for File Manager service");
-            credentials = ChannelCredentials.SecureSsl;
-        }
-        else
+        if (secure.HasValue && !secure.Value)
         {
             logger.Information("Using insecure channel for File Manager service");
             credentials = ChannelCredentials.Insecure;
         }
-        credentials = ChannelCredentials.SecureSsl;
+        else
+        {
+            logger.Information("Using secure channel for File Manager service");
+            credentials = ChannelCredentials.SecureSsl;
+        }
         logger.Information("Using file manager service {Address}", address);
-
         builder.Services.AddSingleton(services =>
         {
-
-            // Return "true" to allow certificates that are untrusted/invalid
-            var httpHandler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback =
-                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-
             var channel = GrpcChannel.ForAddress(address, new GrpcChannelOptions
             {
                 Credentials = credentials,
                 ServiceConfig = new ServiceConfig { LoadBalancingConfigs = { new RoundRobinConfig() } },
-                ServiceProvider = services,
-                HttpHandler = httpHandler
+                ServiceProvider = services
 
             });
 
