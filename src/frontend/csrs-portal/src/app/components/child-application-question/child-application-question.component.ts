@@ -75,7 +75,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
   _no: number = 867670001;
   _iDontKnow: number = 867670002;
 
-  _courtOrder: number = 867670000;
+  _courtOrder: number       = 867670000;
   _writtenAgreement: number = 867670001;
 
   data: any = null;
@@ -85,6 +85,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
   errorMailMessage: any = '';
   errorIncomeMessage: any = '';
   errorDateMessage: any = '';
+  errorMaxMessage: any = '';
   tooltips: any = [];
   isHiddens: any = [];
 
@@ -110,6 +111,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
     this.errorMailMessage = 'Email address without @ or domain name. ';
     this.errorIncomeMessage = 'Field should have numerical values. ';
     this.errorDateMessage = 'Date cannot be in future.'
+    this.errorMaxMessage = 'You can only enter up to 3000 characters.';
 
 
     this.tooltips = [
@@ -202,7 +204,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
 
     this.sixFormGroup = this._formBuilder.group({
       childSafety: [''],
-      childSafetyDescription: [''],
+      childSafetyDescription: ['',Validators.maxLength(3000)],
       contactMethod: [''],
       enrollFMEP: [''],
       FMEPinput: [''],
@@ -211,9 +213,9 @@ export class ChildApplicationQuestionComponent implements OnInit {
     });
 
     // setup default values
-    this.sixFormGroup.controls['childSafety'].patchValue('Yes');
+    this.sixFormGroup.controls['childSafety'].patchValue('No');
     this.sixFormGroup.controls['contactMethod'].patchValue('Email');
-    this.sixFormGroup.controls['enrollFMEP'].patchValue('Yes');
+    this.sixFormGroup.controls['enrollFMEP'].patchValue('No');
     this.sixFormGroup.controls['incomeAssistance'].patchValue('Yes');
 
     this.seventhFormGroup = this._formBuilder.group({
@@ -263,7 +265,9 @@ export class ChildApplicationQuestionComponent implements OnInit {
 }
 
 onDateChange(event: MatDatepickerInputEvent<Date>, i: number): void {
-  var childYears = this.diff_years(event.value, new Date());
+  //var childYears = this.diff_years(event.value, new Date());
+  var childYears = this.ageFromDateOfBirthday(event.value);
+  this.logger.info(`childYears = ${childYears}`);
   this.isHiddens[i] = childYears >= 19 ? true : false;
   this.logger.warn(`childYears = ${childYears}, isHiddens[i] = ${this.isHiddens[i]}`);
 }
@@ -274,6 +278,26 @@ diff_years(dt2, dt1)
    diff /= (60 * 60 * 24);
    return Math.abs(Math.round(diff/365.25));
  }
+
+ ageFromDateOfBirthday(dateOfBirth: any): number {
+  const today = new Date();
+  this.logger.warn(`today = ${today}`);
+  const birthDate = new Date(dateOfBirth);
+  this.logger.warn(`birthDate = ${birthDate}`);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  this.logger.warn(`age = ${age}`);
+  const m = today.getMonth() - birthDate.getMonth();
+  this.logger.warn(`m = ${m}`);
+
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  this.logger.warn(`age = ${age}`);
+
+  return age;
+}
+
+
 
 forSubmitBtn(event){
   //this.logger.info(`event: ${event}`);
@@ -455,9 +479,7 @@ editPage(stepper, index){
   }
 
 
-  saveLater(/*$event: MouseEvent*/) {
-    //($event.target as HTMLButtonElement).disabled = true;
-    //this.logger.info(`event.target as HTMLButtonElement).disabled = ${($event.target as HTMLButtonElement).disabled}`);
+  saveLater() {
     this.isDisabledSubmit = true;
     this.logger.info(`this.isDisabledSubmit = ${this.isDisabledSubmit}`);
     const formData = {
@@ -545,8 +567,9 @@ editPage(stepper, index){
   }
 
   getCourtTyleFile(value){
-    const courtTypeFileId = value == 'Court Order' ?  this._courtOrder : this._writtenAgreement;
+    const courtTypeFileId = value == 'Order' ?  this._courtOrder : this._writtenAgreement;
     const inCourtFileType: LookupValue = {id: courtTypeFileId, value: value};
+    this.logger.warn(`inCourtFileType: ${inCourtFileType}`);
     return inCourtFileType;
   }
 
