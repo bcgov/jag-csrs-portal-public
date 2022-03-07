@@ -277,7 +277,7 @@ export class CommunicationComponent implements OnInit {
             this.data = {
               type: 'info',
               title: 'Success - Message sent',
-              content: 'Your message to the Child Support Recalculation Team was sent successfully.',
+              content: 'Your message to the Child Support Recalculation team was sent successfully.',
               weight: 'bold',
               color: 'green'
             };
@@ -318,7 +318,12 @@ export class CommunicationComponent implements OnInit {
 
   ontable(element) {
     if (element) {
-      this.setMessageRead(element);
+      if (!element.isRead) {
+        this.setMessageRead(element);
+        if (this.unreadCnt > 0) {
+          this.unreadCnt = this.unreadCnt - 1;
+        }
+      }
       for (var i = 0; i < this.messages.length; i++) {
         if (this.messages[i].messageId == element.messageId) {
           this.selectedInboxMessage = this.messages[i];
@@ -422,6 +427,11 @@ openDialog(): void {
   }
 
   setMessageRead(element) {
+    for (var i = 0; i < this.messages.length; i++) {
+      if (this.messages[i].messageId == element.messageId) {
+        this.messages[i].isRead = true;
+      }
+    }
     this.messageService.apiMessageReadGet(element.messageId).subscribe({
       next: (data) => {
       },
@@ -487,4 +497,49 @@ openDialog(): void {
       });
 
   }
+  selectTab(index) {
+    this.selectedTab = 0;
+    if (index) {
+      this.selectedTab = index;
+    }
+  }
+
+  downloadAttachment(serverRelativeUrl, subject, name) {
+    //entityId: string, entityName: string, serverRelativeUrl: string, documentType: string,
+
+    
+    this.documentService.apiDocumentDownloadattachmentGet(
+      this.selectedInboxMessage.messageId,
+      "ssg_csrscommunicationmessage",
+      serverRelativeUrl,
+      subject,
+      'body', false,
+      { httpHeaderAccept: 'application/octet-stream' }
+    ).subscribe((response) => {
+      this.downLoadFile(response, subject, name);
+    });
+  }
+
+  downLoadFile(response: any, type: string, name: string) {
+    let dataType = response.type;
+    let binaryData = [];
+    binaryData.push(response);
+    let downloadLink = document.createElement('a');
+    downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, { type: dataType }));
+    if (name)
+      downloadLink.setAttribute('download', name);
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+
+    /*let blob = new Blob([response], { type: 'application/' + type.replace('.', '').toLowerCase });
+    let url = window.URL.createObjectURL(blob);
+    let pwa = window.open(url);
+    if (!pwa || pwa.closed || typeof pwa.closed == 'undefined') {
+      alert('Please disable your Pop-up blocker and try again.');
+    }*/
+  }
+
 }
+
+
+

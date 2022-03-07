@@ -89,6 +89,11 @@ export class ChildApplicationQuestionComponent implements OnInit {
   tooltips: any = [];
   isHiddens: any = [];
 
+  dateOfOrder: Date;
+  birthOfDateOtherParty: Date;
+  isChildNext: boolean = true;
+
+
   constructor(public oidc : OidcSecurityService,
               private eventService: PublicEventsService,
               private _formBuilder: FormBuilder, private http: HttpClient,
@@ -229,6 +234,19 @@ export class ChildApplicationQuestionComponent implements OnInit {
     });
     //this.setFormDataFromLocal();
   }
+
+  clearDate(event) {
+    event.stopPropagation();
+    this.dateOfOrder = null;
+  }
+
+  clearDateOtherParty(event) {
+    event.stopPropagation();
+    this.birthOfDateOtherParty = null;
+  }
+
+
+
   setFormDataFromLocal(){
   if (localStorage.getItem('formData')){
       let data = localStorage.getItem('formData');
@@ -470,12 +488,48 @@ editPage(stepper, index){
 
     usersArray.insert(arraylen, newUsergroup);
     this.isHiddens.push(false);
+    this.checkNextForChildren();
+  }
 
+
+  checkNullValue(a) {
+    if (typeof (a) == 'undefined' || a === null) {
+        return false;
+    } else {
+        return true;
+    }
+  }
+
+  checkNextForChildren(){
+    const users = this.fourthFormGroup1.value.users;
+    if (users.length === 1)
+    {
+      this.isChildNext = !this.fourthFormGroup1.valid;
+      return !this.fourthFormGroup1.valid;
+    }
+    else
+    {
+      if (users.length > 1)
+      {
+        if ( this.checkNullValue(users[users.length-1].firstName) === true  &&
+             this.checkNullValue(users[users.length-1].lastName)  === true &&
+             this.checkNullValue(users[users.length-1].birthdate) === true ) {
+                this.isChildNext = false;
+                return false;
+             }
+        else
+        {
+          this.isChildNext = true;
+          return true;
+        }
+      }
+    }
   }
 
   deletechild(index){
     this.fourthFormGroup1.get('users')['controls'].splice(index,1)
     this.isHiddens.splice(index);
+    this.checkNextForChildren();
   }
 
 
