@@ -15,7 +15,7 @@ services:
     ## time we change the nginx.conf
     #volumes:
     #  - ./src/frontend/csrs-portal/nginx.conf:/opt/app-root/etc/nginx.default.d/default.conf
-    depends_on: [jag-csrs-api, keycloak]
+    depends_on: [jag-csrs-api]
 
   # #############################################################################################
   # ###                                 Csrs BACKEND                                          ###
