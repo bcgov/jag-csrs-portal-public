@@ -167,6 +167,21 @@ objects:
               secretKeyRef:
                 name: csrs-filemanager-config
                 key: FILEMANAGER_ADDRESS
+          - name: FILEMANAGER_ADDRESS
+            valueFrom:
+              secretKeyRef:
+                name: csrs-filemanager-config
+                key: FILEMANAGER_ADDRESS
+          - name: APIGATEWAY_HOST
+            valueFrom:
+              secretKeyRef:
+                name: ${FILEMANAGER_CONFIG_NAME}
+                key: APIGATEWAY_HOST
+          - name: APIGATEWAY_POLICY
+            valueFrom:
+              secretKeyRef:
+                name: ${FILEMANAGER_CONFIG_NAME}
+                key: APIGATEWAY_POLICY
           - name: FILEMANAGER_SECURE
             valueFrom:
               secretKeyRef:
@@ -262,8 +277,17 @@ objects:
               secretKeyRef:
                 name: csrs-filemanager-config
                 key: APIGATEWAY_POLICY
+          - name: AUTHORIZATION_URI
+            #Sharepoint
+            valueFrom:
+              secretKeyRef:
+                name: csrs-filemanager-config
+                key: AUTHORIZATION_URI
           - name: RESOURCE
             value: ${RESOURCE}
+          - name: ASPNETCORE_URLS
+            value: http://*:8080
+
           ports:
             - containerPort: 8080
               protocol: TCP
