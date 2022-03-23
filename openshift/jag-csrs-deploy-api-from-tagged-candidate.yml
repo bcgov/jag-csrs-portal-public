@@ -99,7 +99,10 @@ parameters:
   description: ca mount path
   required: true
   value: SERVICE_TRUST_BUNDLE_MOUNT_PATH blah blah
-
+- name: FILEMANAGER_CONFIG_NAME
+  description: name of file manager config
+  required: true
+  value: blahblah
 
 objects:
 
@@ -170,12 +173,12 @@ objects:
           - name: FILE_MANAGER_URI
             valueFrom:
               secretKeyRef:
-                name: csrs-filemanager-config
+                name: ${FILEMANAGER_CONFIG_NAME}
                 key: FILEMANAGER_ADDRESS
           - name: FILEMANAGER_ADDRESS
             valueFrom:
               secretKeyRef:
-                name: csrs-filemanager-config
+                name: ${FILEMANAGER_CONFIG_NAME}
                 key: FILEMANAGER_ADDRESS
           - name: FILEMANAGER_SECURE
             valueFrom:
