@@ -36,4 +36,3 @@ exclude_patterns:
   - "src/frontend/*/src/*.component.ts"
   - "src/frontend/*/src/*/*/*.component.ts"
   - "src/infra/*"
- 
