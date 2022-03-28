@@ -8,6 +8,7 @@ import { AppConfigService } from 'app/services/app-config.service';
 import { SnowplowService } from '@core/services/snowplow.service';
 import { environment } from './../../../environments/environment';
 import { LogInOutService } from 'app/services/log-in-out.service';
+import { snowplowData } from '@components/model/snowplowData.model';
 @Component({
   selector: 'app-landing',
   templateUrl: './landing.component.html',
@@ -23,6 +24,7 @@ export class LandingComponent implements OnInit
   public cscLink: string;
   public welcomeUser: string;
   public code: string;
+  public spData: snowplowData;
 
   constructor(public oidcSecurityService : OidcSecurityService,
               private logInOutService : LogInOutService,
@@ -36,18 +38,7 @@ export class LandingComponent implements OnInit
   public async ngOnInit() {
 
       this.cscLink = this.appConfigService.appConfig.cscLink;
-      this.logger.info('cscLink :',this.cscLink);
-
-      if(isDevMode())
-      {
-        this.bceIdRegisterLink = this.appConfigService.appConfig.bceIdRegisterLink;
-      }
-      else
-      {
-        this.bceIdRegisterLink = this.appConfigService.appConfig.bceIdRegisterLink_P;
-      }
-      this.logger.info('isDevMode :',isDevMode());
-      this.logger.info('bceIdRegisterLink :',this.bceIdRegisterLink);
+      this.bceIdRegisterLink = this.appConfigService.appConfig.bceIdRegisterLink;
 
       this.logInOutService.getLogoutStatus.subscribe((data) => {
         if (data !== null || data !== '')
@@ -62,19 +53,8 @@ export class LandingComponent implements OnInit
         }
       })
 
-      this.oidcSecurityService.checkAuth().subscribe(({ isAuthenticated,
-                                          userData,
-                                          accessToken,
-                                          idToken,
-                                          configId,
-  errorMessage }) => {
-          this.logger.info('isAuthenticated: ', isAuthenticated);
-          this.logger.info('userData: ', userData);
-          this.logger.info('accessToken: ', accessToken);
-          this.logger.info('idToken: ', idToken);
-          this.logger.info('configId: ', configId);
-          this.logger.info('errorMessage: ', errorMessage);
-
+      this.oidcSecurityService.checkAuth().subscribe(
+        ({ isAuthenticated}) => {
           if (isAuthenticated === true)
           {
             this.router.navigate(['/welcomeuser']);
@@ -86,19 +66,18 @@ export class LandingComponent implements OnInit
 
           this.logInOutService.currentUser(isAuthenticated);
       });
-
-
-    }
+  }
 
   login() {
-      this.oidcSecurityService.authorize();
+    this.oidcSecurityService.authorize();
   }
 
   logout() {
-      this.oidcSecurityService.logoffAndRevokeTokens();
+    this.oidcSecurityService.logoffAndRevokeTokens();
   }
 
   public ngAfterViewInit(): void {
     this.snowplow.refreshLinkClickTracking();
   }
+
 }

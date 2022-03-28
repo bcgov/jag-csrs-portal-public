@@ -105,7 +105,9 @@
                       <span *ngFor="let nextBackButton of question.forwardButtons; index as nbi">
                         <button class="fontSize20" *ngIf="i == 0" mat-stroked-button color="basic" matStepperPrevious (click)="setUIconColor(i,question)"><a href="/">< Back</a></button>
                         <button class="fontSize20" *ngIf="nextBackButton.name=='back'" mat-stroked-button color="basic" matStepperPrevious (click)="setUIconColor(i,question)">< {{nextBackButton.label}}</button>
-                        <button class="fontSize20" class="nextStep" [disabled]="!question.clicked" *ngIf="nextBackButton.name=='next'" mat-stroked-button color="basic" matStepperNext (click)="setUIconColor(i,question)">Next ></button>
+                        <button class="fontSize20" class="nextStep" [disabled]="!question.clicked" *ngIf="nextBackButton.name=='next'" mat-stroked-button color="basic" matStepperNext
+                        (click)="setUIconColor(i,question)">
+                        Next ></button>
                       </span>
                     </div>
                 </ng-template>

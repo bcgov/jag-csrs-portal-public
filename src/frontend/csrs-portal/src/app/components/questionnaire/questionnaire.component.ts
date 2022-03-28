@@ -1,12 +1,12 @@
 import { style } from '@angular/animations';
 import { Component, OnInit, isDevMode } from '@angular/core';
 import { LoggerService } from '@core/services/logger.service';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { Inject } from '@angular/core';
 import { AppConfigService } from 'app/services/app-config.service';
 import { SnowplowService } from '@core/services/snowplow.service';
-//declare var jQuery: any;
+import { snowplowData } from '@components/model/snowplowData.model';
 
 @Component({
   selector: 'app-questionnaire',
@@ -20,9 +20,10 @@ export class QuestionnaireComponent implements OnInit {
   public bceIdRegisterLink: string;
   public downloadApplicationLink: string;
   public cscLink: string;
-  public   isEditable = true;
+  public isEditable = true;
   public welcomeUser: string;
   public selectedIndex: number = 0;
+  public spData: snowplowData;
 
   data: any = [
     {
@@ -550,7 +551,6 @@ export class QuestionnaireComponent implements OnInit {
               @Inject(OidcSecurityService) private oidcSecurityService,
               @Inject(AppConfigService) private appConfigService,
               @Inject(SnowplowService) private snowplow) {
-
   }
 
   stringToHTML(i, yi, ci, str, idLabel) {
@@ -668,25 +668,11 @@ export class QuestionnaireComponent implements OnInit {
 
   public async ngOnInit() {
 
-    if(isDevMode())
-    {
-      this.bceIdRegisterLink = this.appConfigService.appConfig.bceIdRegisterLink;
-    }
-    else
-    {
-      this.bceIdRegisterLink = this.appConfigService.appConfig.bceIdRegisterLink_P;
-    }
-    this.logger.info('isDevMode :',isDevMode());
-    this.logger.info('bceIdRegisterLink :',this.bceIdRegisterLink);
-
+    this.bceIdRegisterLink = this.appConfigService.appConfig.bceIdRegisterLink;
     this.downloadApplicationLink = this.appConfigService.appConfig.downloadApplication;
-    this.logger.info('downloadApplicationLink :',this.downloadApplicationLink);
-
     this.cscLink = this.appConfigService.appConfig.cscLink;
-    this.logger.info('cscLink :',this.cscLink);
 
     this.oidcSecurityService.checkAuth().subscribe(({ isAuthenticated }) => {
-      this.logger.log('info',`isAuthenticated = ${isAuthenticated}`);
       if (isAuthenticated === true)
       {
         this.router.navigate(['/welcomeuser']);
@@ -702,11 +688,11 @@ export class QuestionnaireComponent implements OnInit {
     this.oidcSecurityService.logoffAndRevokeTokens();
   }
 
+
   downloadApplication()
   {
     const link = document.createElement('a');
     link.download = "Application.pdf";
-    //link.href = "assets/Application.pdf";
     link.href = this.downloadApplicationLink;
     link.click();
   }
