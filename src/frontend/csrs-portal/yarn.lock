@@ -4586,10 +4586,10 @@ neo-async@^2.6.2:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
-ng-busy@^12.0.1:
-  version "12.0.2"
-  resolved "https://registry.yarnpkg.com/ng-busy/-/ng-busy-12.0.2.tgz#4ba0c40405b1209244f3909bc7e2bdbc315f2b78"
-  integrity sha512-xf6++PAbFJzw8FpIMzD611PP72926XRDNoQPdI5kQnNVHl+n1AQM8ln+/VyXEOIxrbq4GkG7TPnSmK5vR0hLWA==
+ng-busy@^13.0.0:
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/ng-busy/-/ng-busy-13.0.0.tgz#32207ad2f886b0e4613fa56d10cb30764d999cc2"
+  integrity sha512-ds4KhmNdr1eDE7nXNvwdfk92LI8CJWsKEJSvxcZa/oE7hg6A7PlnNEJr6RivupDCAIwkzfnmDn3dX0viQ76UGQ==
   dependencies:
     tslib "^2.0.3"
 
