@@ -25,6 +25,7 @@ namespace Csrs.Api.Controllers
             DownloadDocument.Request request = new DownloadDocument.Request(entityId, entityName, serverRelativeUrl, documentType);
             DownloadDocument.Response response = await _mediator.Send(request);
 
+
             return response.ActionResult;
         }
 
