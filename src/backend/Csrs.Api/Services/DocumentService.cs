@@ -125,8 +125,21 @@ namespace Csrs.Api.Services
             string fileName = FileSystemItemExtensions.CombineNameDocumentType(file.FileName, type);
 
             var folderName = dynamicsFile.GetDocumentFolderName();
+            // todo
+            /////if Notice of Assessment
+            //Income Tax Return
+            //   Court application
 
-           // await CreateAccountDocumentLocation(dynamicsFile, folderName, cancellationToken);
+
+
+            //   then get folder name from recalc.
+
+            //loop over these and find the active one
+            var lst = dynamicsFile.SsgCsrsfileSsgCsrsrecalculationFileNumber;
+            //from active one get the folde rname
+            //if more that one active just select first active in list.
+
+            // await CreateAccountDocumentLocation(dynamicsFile, folderName, cancellationToken);
 
             // call the web service
             var uploadRequest = new UploadFileRequest

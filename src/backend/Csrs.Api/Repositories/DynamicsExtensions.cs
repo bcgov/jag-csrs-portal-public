@@ -65,8 +65,9 @@ namespace Csrs.Interfaces.Dynamics
                 
                 var filter = $"(_ssg_recipient_value eq {partyId} or _ssg_payor_value eq {partyId}) and ssg_csrsfileid eq {fileId}";
                 var select = new List<string> { "ssg_csrsfileid", "ssg_filenumber" };
+                var expand = new List<string> { "ssg_csrsfile_ssg_csrsrecalculation_FileNumber($select=ssg_recalculationnumber)" };
 
-                var files = await dynamicsClient.Ssgcsrsfiles.GetAsync(filter: filter, select: select, cancellationToken: cancellationToken);
+                var files = await dynamicsClient.Ssgcsrsfiles.GetAsync(filter: filter, select: select, expand: expand, cancellationToken: cancellationToken);
 
                 if (files.Value.Count == 0) return null;
 

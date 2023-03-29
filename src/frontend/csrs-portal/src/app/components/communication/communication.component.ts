@@ -585,11 +585,22 @@ openDialog(): void {
   submitUploadedAttachment() {
     const fileData = new FormData();
     this.uploadDisabled = true;
+
+    var selectedDocType = this.documentType.value;
+    var entityName = 'ssg_csrsfile';
+
+    if(selectedDocType == 'Notice_of_Assessment' ||
+    selectedDocType == 'Income_Tax_Return' ||
+    selectedDocType == 'Court_Application'
+    ){
+      entityName = 'ssg_csrsrecalculation';
+    }
+
     fileData.append('file', this.selectedFile, this.selectedFile.name);
         //this.logger.info('File Data', fileData);
      this.documentService.apiDocumentUploadattachmentPost(
         this.selectedUploadFile.fileId,
-        "ssg_csrsfile",
+        entityName,
         this.documentType.value,
         this.selectedFile
       ).subscribe({

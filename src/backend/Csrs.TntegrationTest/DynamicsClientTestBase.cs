@@ -2,7 +2,11 @@
 using Csrs.Api.ApiGateway;
 using Csrs.Api.Authentication;
 using Csrs.Api.Configuration;
+using Csrs.Api.Services;
 using Csrs.Interfaces.Dynamics;
+using Grpc.Core;
+using Grpc.Net.Client;
+using Grpc.Net.Client.Configuration;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -47,8 +51,44 @@ namespace Csrs.TntegrationTest
             .AddHttpMessageHandler<OAuthHandler>()
             .AddHttpMessageHandler<ApiGatewayHandler>();
 
-            services.AddTransient<ITokenService, TokenService>();
+            FileManagerConfiguration? config = csrsConfiguration.FileManager;
 
+            string address = config.Address;
+
+            // determine if we are using http or https
+            ChannelCredentials credentials;
+
+            bool? secure = config.Secure;
+            if (secure.HasValue && !secure.Value)
+            {
+                credentials = ChannelCredentials.Insecure;
+            }
+            else
+            {
+                credentials = ChannelCredentials.SecureSsl;
+            }
+
+            services.AddSingleton(services =>
+            {
+                var channel = GrpcChannel.ForAddress(address, new GrpcChannelOptions
+                {
+                    Credentials = credentials,
+                    ServiceConfig = new ServiceConfig { LoadBalancingConfigs = { new RoundRobinConfig() } },
+                    ServiceProvider = services
+
+                });
+
+                return channel;
+            });
+
+            services.AddTransient(services =>
+            {
+                GrpcChannel channel = services.GetRequiredService<GrpcChannel>();
+                return new Csrs.Services.FileManager.FileManager.FileManagerClient(channel);
+            });
+
+            services.AddTransient<ITokenService, TokenService>();
+            services.AddTransient<IDocumentService, DocumentService>();
 
             _serviceProvider = services.BuildServiceProvider();
         }

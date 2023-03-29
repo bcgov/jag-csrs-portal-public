@@ -342,6 +342,9 @@ namespace Csrs.Services.FileManager
                 case "ssg_csrsfile":
                     listTitle = "CSRS File";
                     break;
+                case "ssg_csrsrecalculation":
+                    listTitle = "CSRS Recalculation";
+                    break;
                 case "application":
                     listTitle = SharePointFileManager.ApplicationDocumentListTitle;
                     break;
@@ -378,6 +381,9 @@ namespace Csrs.Services.FileManager
                     break;
                 case "ssg_csrsfile":
                     listTitle = "ssg_csrsfile";
+                    break;
+                case "ssg_csrsrecalculation":
+                    listTitle = "ssg_csrsrecalculation";
                     break;
                 case "application":
                     listTitle = "adoxio_application";

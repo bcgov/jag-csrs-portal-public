@@ -1,13 +1,17 @@
 ﻿using Csrs.Interfaces.Dynamics;
 using Csrs.Interfaces.Dynamics.Models;
+using Csrs.Services.FileManager;
+using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Rest;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
+using static Csrs.Services.FileManager.FileManager;
 
 namespace Csrs.TntegrationTest
 {
@@ -124,6 +128,29 @@ namespace Csrs.TntegrationTest
             {
                 // dont fail if the requested file is not found
             }
+        }
+
+        [DebugOnlyFact]
+        public void upload_recalculation_document()
+        {
+            FileManagerClient _fileManagerClient = _serviceProvider.GetRequiredService<FileManagerClient>();
+            //var data = File.ReadAllBytes("C:\\Users\\311816\\Downloads\\testCaseCSRS.pdf");
+            string path = Path.GetFullPath(@"..\..\..\Document\testCaseCSRS.pdf");
+            var data = File.ReadAllBytes(path);
+
+            var uploadRequest = new UploadFileRequest
+            {
+                ContentType = "application/pdf",
+                Data = ByteString.CopyFrom(data),
+                EntityName = "ssg_csrsrecalculation",
+                FileName = "TestFile_Recalculation3.pdf",
+                FolderName = "RECALC-0000-1 _70D624EFE7C9ED11B84000505683FBF4"
+            };
+
+            var uploadResult = _fileManagerClient.UploadFile(uploadRequest);
+
+            Assert.NotNull(uploadResult);
+            Assert.Contains("success", uploadResult.ResultStatus.ToString().ToLower());
         }
     }
 }
