@@ -78,6 +78,11 @@ OnInit {
   inboxFormGroup: FormGroup;
   messages: List<Message> = new List<Message>();
 
+  selectedOutboxFile: any;
+  selectedOutboxMessage: any;
+  outboxFormGroup: FormGroup;
+  outboxMessages: List<Message> = new List<Message>();
+
   uploadFormGroup: FormGroup;
   bceIdLink: string;
   selectedFile: File = null;
@@ -112,6 +117,7 @@ OnInit {
   selectedTab: number = 0;
   selectedFileNumber: any = '';
   inboxLoaded = false;
+  outboxLoaded = false;
 
   ngOnInit(): void {
 
@@ -160,7 +166,9 @@ OnInit {
     this.inboxFormGroup = this._formBuilder.group({
       inboxFile: [null, ]
     });
-
+    this.outboxFormGroup = this._formBuilder.group({
+      outboxFile: [null, ]
+    });
 
   }
 
@@ -195,13 +203,16 @@ OnInit {
 
   getMessages() {
     this.inboxLoaded = false;
+    this.outboxLoaded = false;
     this.dataSource.data = [];
     this.messageService.apiMessageListGet('response', false).subscribe({
       next: (data) => {
         this.logger.info('getMessages: ', data.body);
         this.messages = data.body;
         this.getRemoteData();
-        this.inboxLoaded = true
+        this.inboxLoaded = true;
+        this.outboxLoaded = true;
+
       },
       error: (e) => {
         this.inboxLoaded = true
@@ -259,6 +270,18 @@ OnInit {
       for (var i = 0; i < this.files.length; i++) {
         if (fileValue == this.files[i].fileId) {
           this.selectedInboxFile = this.files[i];
+        }
+      }
+    }
+    this.getRemoteData();
+  }
+  onOutboxFileNumberChange(ob): void {
+    let fileValue = ob.value;
+    this.selectedOutboxFile = null;
+    if (fileValue && fileValue != 'all') {
+      for (var i = 0; i < this.files.length; i++) {
+        if (fileValue == this.files[i].fileId) {
+          this.selectedOutboxFile = this.files[i];
         }
       }
     }
