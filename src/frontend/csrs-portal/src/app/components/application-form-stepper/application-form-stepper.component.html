@@ -113,7 +113,7 @@
               </div>
               <div class="col-md-6">
                 <mat-form-field class="w-100">
-                  <mat-label>Work phone number<span class="text-danger">*</span></mat-label>
+                  <mat-label>Preferred phone number<span class="text-danger">*</span></mat-label>
                   <input matInput formControlName="workNumber" placeholder="(XXX) XXX-XXXX" mask="(000) 000-0000" [dropSpecialCharacters]="false" [specialCharacters]="['(', ')', '-', ' ']" [showMaskTyped]="false" />
                   <mat-error>{{ errorMessage | json }}</mat-error>
                 </mat-form-field>
@@ -364,7 +364,7 @@ the information before submission.
               </div>
               <div class="row">
                 <div class="col-md-6 stepRow spaceAround displayDetails">
-                  <div>Preferred Phone number2:</div>
+                  <div>Preferred Phone number:</div>
                   <div class="bold">{{(secondFormGroup.value.workNumber)?secondFormGroup.value.workNumber:'-' }}</div>
                 </div>
                 <div class="col-md-6 stepRow spaceAround displayDetails">
