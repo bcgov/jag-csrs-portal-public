@@ -10,7 +10,7 @@ services:
       context: ./src/frontend/csrs-portal
     restart: always
     ports:
-      - "8080:8080"
+      - "8080:80"
     ## following is used for testing nginx.conf locally. No need to build the csrs-portal every
     ## time we change the nginx.conf
     #volumes:
