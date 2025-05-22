@@ -37,6 +37,6 @@ COPY --from=build /usr/src/app/src/favicon.ico /usr/share/nginx/html
 COPY --from=build /usr/src/app/dist/csrs-portal /usr/share/nginx/html
 COPY --from=build /usr/src/app/nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["sh", "-c", "nginx -g 'daemon off;'"]

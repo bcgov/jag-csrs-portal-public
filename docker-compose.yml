@@ -10,11 +10,11 @@ services:
       context: ./src/frontend/csrs-portal
     restart: always
     ports:
-      - "8080:80"
+      - "8080:8080"
     ## following is used for testing nginx.conf locally. No need to build the csrs-portal every
     ## time we change the nginx.conf
     #volumes:
-    #  - ./src/frontend/csrs-portal/nginx.conf:/opt/app-root/etc/nginx.default.d/default.conf
+    #  - ./src/frontend/csrs-portal/nginx.conf:/etc/nginx.default.d/default.conf
     depends_on: [jag-csrs-api]
 
   # #############################################################################################
