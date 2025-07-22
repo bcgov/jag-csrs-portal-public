@@ -75,3 +75,43 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 ## Coding Styles
 
 Coding styles should adhere to the [Angular Style Guide](https://angular.io/docs/ts/latest/guide/style-guide.html) at all times! The editor config setup for the project will also assist with coding style automatically, as well as VSCode settings.
+
+
+
+
+## Run CSRS Portal Locally with Docker Compose
+
+   1. Navigate to the project root:
+    cd jag-csrs-portal-public\
+
+   2. Build the containers (API, Frontend, etc.):
+    docker compose build
+
+   3. Start the containers:
+    docker compose up
+
+   4. To shut everything down cleanly:
+    docker compose down
+
+   5. To force a rebuild (use after Dockerfile changes):
+    docker compose down && docker compose build --no-cache && docker compose up
+
+    🚨 Known issue on Windows:
+    You may need to trust the development certificate if the backend uses HTTPS.
+
+    Run the following once:
+    dotnet dev-certs https --trust
+
+## Debug CSRS API Locally with VS
+
+    1. If breakpoints aren’t hit during debugging, ensure Dockerfile includes .pdb files and that -c Debug is set during build/publish.
+
+    2. To attach the debugger in VS  to the jag-csrs-api process running inside Docker (Linux Container, Docker type)
+
+    3. Select Docker debug profile
+
+    4. For Connection type select Docker (Linux Container)
+
+    5. For Connection target select jag-csrs-api
+
+    6. Filter processes ( 'dotnet') and select the process
