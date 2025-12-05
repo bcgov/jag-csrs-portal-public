@@ -28,14 +28,6 @@ namespace Csrs.Api.Services
         {
             _logger.LogDebug("IsSent={IsSent}, Get party messages request received for PartyId={PartyId}", isSent, partyId);
 
-            // CSRS-561 
-            // DO NOT show outbox messages, there is a new requirement, messages need to be filtered, user should not be seeing agent messages
-            // This if statement is to not show anything temporarily as we implement the filter feature
-            if (isSent)
-            {
-                return new List<Message>();
-            }
-
             try
             {
                 MicrosoftDynamicsCRMssgCsrsfileCollection files = await _dynamicsClient.GetFilesByParty(partyId, isSent, cancellationToken);
@@ -46,7 +38,10 @@ namespace Csrs.Api.Services
                     return new List<Message>();
                 }
 
-                _logger.LogDebug("IsSent={IsSent}, Retrieved {FileCount} files for PartyId={PartyId}", isSent, files?.Value?.Count ?? 0, partyId);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug("IsSent={IsSent}, Retrieved {FileCount} files for PartyId={PartyId}", isSent, files?.Value?.Count ?? 0, partyId);
+                }
 
                 List<Message> messages = new List<Message>();
                 foreach (var file in files.Value)
@@ -59,7 +54,7 @@ namespace Csrs.Api.Services
 
                     _logger.LogDebug("IsSent={IsSent}, Processing FileId={FileId}", isSent, file.SsgCsrsfileid);
 
-                    MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection dynamicsMessages = await _dynamicsClient.GetCommunicationMessagesByFile(file.SsgCsrsfileid, partyId, isSent, cancellationToken);
+                    MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection dynamicsMessages = await _dynamicsClient.GetCommunicationMessagesByFile(file.SsgCsrsfileid, partyId, isSent, cancellationToken, _logger);
 
                     if (dynamicsMessages == null || dynamicsMessages.Value == null)
                     {
@@ -67,7 +62,10 @@ namespace Csrs.Api.Services
                         continue;
                     }
 
-                    _logger.LogDebug("IsSent={IsSent}, Retrieved {MessageCount} messages for FileId={FileId}", isSent, dynamicsMessages?.Value?.Count ?? 0, file.SsgCsrsfileid);
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug("IsSent={IsSent}, Retrieved {MessageCount} messages for FileId={FileId}", isSent, dynamicsMessages?.Value?.Count ?? 0, file.SsgCsrsfileid);
+                    }
 
                     foreach (var message in dynamicsMessages.Value)
                     {

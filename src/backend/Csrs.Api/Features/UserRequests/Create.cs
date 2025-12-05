@@ -59,34 +59,47 @@ namespace Csrs.Api.Features.UserRequests
 
             public async Task<Response> Handle(Request request, CancellationToken cancellationToken)
             {
-                
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug(
+                        "➡️ Message Create.Handler START - Processing User Request: FileId={FileId}, FileNo={FileNo}, Type={Type}",
+                        request.FileId,
+                        request.FileNo,
+                        request.RequestType
+                    );
+                }
                 _logger.LogInformation("Creating User Request");
+
                 string userId = _userService.GetBCeIDUserId();
                 if (string.IsNullOrEmpty(userId))
                 {
                     _logger.LogInformation("No BCeID on authenticated user, cannot create User Request");
                     return new Response("Unauthenticated");
                 }
+                
                 _logger.AddBCeIdGuid(userId);
                 MicrosoftDynamicsCRMssgCsrspartyCollection parties = await _dynamicsClient.GetPartyByBCeIdAsync(userId, cancellationToken);
-                MicrosoftDynamicsCRMssgCsrsparty party;
-                if (parties.Value.Count > 0)
+
+                MicrosoftDynamicsCRMssgCsrsparty? party = parties?.Value?.FirstOrDefault();
+                if (party == null)
                 {
-                    party = parties.Value.First();
-                }
-                else
-                {
-                    _logger.LogInformation($"No associated party, cannot create User Request. BCEID {userId}");
+                    _logger.LogInformation("No associated party found for BCEID {BCeID}", userId);
                     return new Response("No Party Associated");
                 }
+
                 _logger.AddPartyId(party.SsgCsrspartyid);
-                MicrosoftDynamicsCRMtask task = new MicrosoftDynamicsCRMtask();
-                task.Activitytypecode = "task";
-                task.Subject = "File " + request.FileNo + " - " + request.RequestType;
-                string desc = "Party: " + party.SsgFullname + "\n"+
-                              "Message: "+request.RequestMessage;
-                task.Description =  desc;
-                task.Isregularactivity = true;
+                string desc = $"Party: {party.SsgFullname}\nMessage: {request.RequestMessage}";
+                var task = new MicrosoftDynamicsCRMtask
+                {
+                    FamsOrigin = 451190000,     // Dynamics Label: Portal
+                    Activitytypecode = "task",
+                    Subject = $"File {request.FileNo} - {request.RequestType}",
+                    Description = desc,
+                    Isregularactivity = true,
+                    Prioritycode = 1,   // Normal
+                    Statuscode = 2,     // Not Started
+                    Scheduledend = DateTimeOffset.UtcNow
+                };             
                 //Get the file
                 _logger.AddFileId(request.FileId);
                 MicrosoftDynamicsCRMssgCsrsfile originFile;
@@ -94,35 +107,48 @@ namespace Csrs.Api.Features.UserRequests
                 {
                     originFile = await _dynamicsClient.GetFileByFileId(request.FileId, cancellationToken);
                 }
-                catch (HttpOperationException exception) when (exception.Response?.StatusCode == HttpStatusCode.NotFound)
+                catch (HttpOperationException ex) when (ex.Response?.StatusCode == HttpStatusCode.NotFound)
                 {
-                    _logger.LogError(exception, $"ERROR in fetching file {request.FileId}");
+                    _logger.LogError(ex, $"ERROR in fetching file {request.FileId}");
                     return new Response("Incorrect file number supplied");
                 }
-                if (originFile != null)
+
+                if (originFile == null)
                 {
-                    if (originFile._owninguserValue != null)
-                    {
-                        task.OwninguserODataBind = _dynamicsClient.GetEntityURI("systemusers", originFile._owninguserValue);
-                        task.OwnerIdODataBind = _dynamicsClient.GetEntityURI("systemusers", originFile._owninguserValue);
-                    }
-                    else
-                    {
-                        _logger.LogInformation($"File has no owner, cannot create User Request. File {request.FileId}");
-                        return new Response("File has no owner");
-                    }
-                    task.RegardingobjectidSsgCsrsfileODataBind = _dynamicsClient.GetEntityURI("ssg_csrsfiles", originFile.SsgCsrsfileid);
+                    _logger.LogWarning("File {FileId} returned null unexpectedly", request.FileId);
+                    return new Response("File not found");
                 }
-                task.Prioritycode = 1;// Normal
-                task.Statuscode = 2; // Not Started
-                task.Scheduledend = new DateTimeOffset(DateTime.UtcNow);
+
+                if (!string.IsNullOrEmpty(originFile._owninguserValue))
+                {
+                    string userUri = _dynamicsClient.GetEntityURI("systemusers", originFile._owninguserValue);
+                    task.OwninguserODataBind = userUri;
+                    task.OwnerIdODataBind = userUri;
+                }
+                else
+                {
+                    _logger.LogInformation("File {FileId} has no owner, cannot create User Request", request.FileId);
+                    return new Response("File has no owner");
+                }
+
+                task.RegardingobjectidSsgCsrsfileODataBind = _dynamicsClient.GetEntityURI("ssg_csrsfiles", originFile.SsgCsrsfileid);
+
                 //ap.Statecode = 0;  defaults in DB
                 MicrosoftDynamicsCRMtask result = await _dynamicsClient.Tasks.CreateAsync(task);
                 _logger.AddProperty("ActivityId", result.Activityid);
-                _logger.LogDebug("User Request created successfully");
+                _logger.LogDebug("User Request created successfully: ActivityId={ActivityId}", result.Activityid);
+                if (_logger.IsEnabled(LogLevel.Debug))
+                {
+                    _logger.LogDebug(
+                        "🏁 Message Create.Handler END Processing User Request: FileId={FileId}, FileNo={FileNo}, Type={Type}",
+                        request.FileId,
+                        request.FileNo,
+                        request.RequestType
+                    );
+                }
+                
                 return new Response("User Request Created");
             }
         }
-
     }
 }
