@@ -173,64 +173,93 @@ namespace Csrs.Interfaces.Dynamics
            
             return await dynamicsClient.Ssgcsrsfiles.GetByKeyAsync(fileId, select: select, expand: null, cancellationToken: cancellationToken);
         }
-        public static async Task<MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection> GetCommunicationMessagesByFile(this IDynamicsClient dynamicsClient, string fileId, string partyId, bool isSent, CancellationToken cancellationToken)
+        public static async Task<MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection> GetCommunicationMessagesByFile(
+            this IDynamicsClient dynamicsClient, 
+            string fileId, 
+            string partyId, 
+            bool isSent, 
+            CancellationToken cancellationToken,
+            ILogger logger)
         {
             ArgumentNullException.ThrowIfNull(dynamicsClient);
 
             fileId = GuidGuard(fileId);
 
-            string filter = $"_ssg_csrsfile_value eq {fileId} and statuscode eq 867670001 and _ssg_toparty_value eq {partyId}";
-            List<string> select = new List<string> { "_ssg_csrsfile_value", "ssg_sentreceiveddate", "ssg_csrsmessage",
-                                                    "ssg_csrsmessageattachment", "ssg_csrsmessageread", "ssg_csrsmessagesubject",
-                                                    "statuscode", "_ssg_toparty_value"};
-            List<string> expand = new List<string> { "ssg_csrsFile($select=ssg_filenumber)" };
-            List<string> orderby = new List<string> { "modifiedon desc" };
-
-            var messages = new MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection();
-
-            if (isSent == false)
+            // Filter for received messages
+            string filterReceived = $"_ssg_csrsfile_value eq {fileId} and statuscode eq 867670001 and _ssg_toparty_value eq {partyId}";
+            List<string> selectReceived = new List<string>
             {
-                messages = await dynamicsClient.Ssgcsrscommunicationmessages.GetAsync(select: select, expand: expand, orderby: orderby, filter: filter, cancellationToken: cancellationToken);
+                "_ssg_csrsfile_value", "ssg_sentreceiveddate", "ssg_csrsmessage",
+                "ssg_csrsmessageattachment", "ssg_csrsmessageread", "ssg_csrsmessagesubject",
+                "statuscode", "_ssg_toparty_value"
+            };
+            List<string> expandReceived = new List<string> { "ssg_csrsFile($select=ssg_filenumber)" };
+            List<string> orderbyReceived = new List<string> { "modifiedon desc" };
+
+            if (!isSent)
+            {
+                // Regular inbox messages
+                return await dynamicsClient.Ssgcsrscommunicationmessages.GetAsync(
+                    select: selectReceived,
+                    expand: expandReceived,
+                    orderby: orderbyReceived,
+                    filter: filterReceived,
+                    cancellationToken: cancellationToken
+                );
+            }
+
+            // For sent messages (isSent == true) → filter by FamsOrigin = 451190000
+            List<string> orderbyTask = new List<string> { "createdon desc" };
+            List<string> expandTask = new List<string> { "createdby", "modifiedby", "ownerid", "owninguser", "regardingobjectid_ssg_csrsfile_task" };
+            string filterTasks = $"_regardingobjectid_value eq {fileId} and fams_origin eq 451190000";
+
+            var tasks = await dynamicsClient.Tasks.GetAsync(
+                orderby: orderbyTask,
+                expand: expandTask,
+                filter: filterTasks,
+                cancellationToken: cancellationToken
+            );
+
+            var messagesFromTasks = new MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection();
+
+            if (tasks?.Value != null)
+            {
+                foreach (var task in tasks.Value)
+                {
+                    var date = task.Createdon ?? task.Modifiedon;
+                    var subject = task.Subject;
+                    var description = task.Description;
+                    var famsOrigin = task.FamsOrigin;
+
+                    logger?.LogDebug(
+                        "📤 Sent Task Retrieved - Subject: {Subject}, FileId: {FileId}, FamsOrigin: {FamsOrigin}, CreatedOn: {CreatedOn}",
+                        subject,
+                        fileId,
+                        famsOrigin,
+                        date
+                    );
+
+                    messagesFromTasks.Value ??= new List<MicrosoftDynamicsCRMssgCsrscommunicationmessage>();
+
+                    messagesFromTasks.Value.Add(new MicrosoftDynamicsCRMssgCsrscommunicationmessage
+                    {
+                        SsgSentreceiveddate = date,
+                        SsgCsrsmessage = description,
+                        SsgCsrsFile = task.RegardingobjectidSsgCsrsfileTask,
+                        SsgCsrsmessagesubject = subject,
+                        _ssgCsrsfileValue = fileId,
+                        SsgCsrscommunicationmessageid = Guid.NewGuid().ToString("D"),  // Generate a new Guid for the message 
+                        FamsOrigin = task.FamsOrigin
+                    });
+                }
+                logger?.LogDebug("✅ Total {Count} sent messages retrieved for FileId={FileId}", messagesFromTasks.Value.Count, fileId);
             }
             else
             {
-                List<string> orderbyTask = new List<string> { "createdon desc" };
-                List<string> expandTask = new List<string> { "createdby", "modifiedby", "ownerid", "owninguser", "regardingobjectid_ssg_csrsfile_task" };
-                string filterTasks = $"_regardingobjectid_value eq {fileId}";
-
-                var actual = await dynamicsClient.Tasks.GetAsync(orderby: orderbyTask, expand: expandTask, filter: filterTasks, cancellationToken: cancellationToken);
-                var messagesFromTasks = new MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection();
-                if (isSent && actual?.Value != null)
-                {
-                    foreach (var task in actual.Value)
-                    {
-                        var date = task.Createdon ?? task.Modifiedon;
-                        var fileNumber = task.RegardingobjectidSsgCsrsfileTask?.SsgFilenumber;
-                        var subject = task.Subject;
-                        var description = task.Description; 
-
-                        if (messagesFromTasks.Value == null)
-                        {
-                            messagesFromTasks.Value = new List<MicrosoftDynamicsCRMssgCsrscommunicationmessage>();
-                        }
-
-                        messagesFromTasks.Value.Add(new MicrosoftDynamicsCRMssgCsrscommunicationmessage
-                        {
-                            SsgSentreceiveddate = date,
-                            SsgCsrsmessage = description,
-                            SsgCsrsFile = task.RegardingobjectidSsgCsrsfileTask,
-                            SsgCsrsmessagesubject = subject,
-                            _ssgCsrsfileValue = fileId,
-                            SsgCsrscommunicationmessageid = Guid.NewGuid().ToString("D"), // Generate a new Guid for the message  
-
-                        });
-                    }
-                }
-
-                messages = messagesFromTasks;
+                logger?.LogDebug("⚠️ No sent messages found for FileId={FileId}", fileId);
             }
 
-            return messages;
+            return messagesFromTasks;
         }
 
         /// <summary>

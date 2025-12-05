@@ -91,6 +91,9 @@ namespace Csrs.Interfaces.Dynamics.Models
         /// </summary>
         partial void CustomInit();
 
+        [JsonProperty(PropertyName = "fams_origin")]
+        public int? FamsOrigin { get; set; }
+
         /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "_owninguser_value")]
