@@ -173,6 +173,7 @@ namespace Csrs.Interfaces.Dynamics
            
             return await dynamicsClient.Ssgcsrsfiles.GetByKeyAsync(fileId, select: select, expand: null, cancellationToken: cancellationToken);
         }
+
         public static async Task<MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection> GetCommunicationMessagesByFile(
             this IDynamicsClient dynamicsClient, 
             string fileId, 
@@ -220,7 +221,10 @@ namespace Csrs.Interfaces.Dynamics
                 cancellationToken: cancellationToken
             );
 
-            var messagesFromTasks = new MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection();
+            var messagesFromTasks = new MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection
+            {
+                Value = new List<MicrosoftDynamicsCRMssgCsrscommunicationmessage>()
+            };
 
             if (tasks?.Value != null)
             {
@@ -229,13 +233,12 @@ namespace Csrs.Interfaces.Dynamics
                     var date = task.Createdon ?? task.Modifiedon;
                     var subject = task.Subject;
                     var description = task.Description;
-                    var famsOrigin = task.FamsOrigin;
 
                     logger?.LogDebug(
                         "📤 Sent Task Retrieved - Subject: {Subject}, FileId: {FileId}, FamsOrigin: {FamsOrigin}, CreatedOn: {CreatedOn}",
                         subject,
                         fileId,
-                        famsOrigin,
+                        task.FamsOrigin,
                         date
                     );
 
