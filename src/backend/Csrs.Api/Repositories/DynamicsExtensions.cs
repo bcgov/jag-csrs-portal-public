@@ -154,7 +154,7 @@ namespace Csrs.Interfaces.Dynamics
             partyId = GuidGuard(partyId);
 
             string filter = $"_ssg_payor_value eq {partyId} or _ssg_recipient_value eq {partyId}";
-            List<string> select = new List<string> { "ssg_csrsfileid", "ssg_filenumber" };
+            List<string> select = new List<string> { "ssg_csrsfileid", "ssg_filenumber", "_ssg_payor_value", "_ssg_recipient_value" };
             List<string> orderby = new List<string> { "modifiedon desc" };
 
             var files = await dynamicsClient.Ssgcsrsfiles.GetAsync(select: select, orderby: orderby, filter: filter, expand: null, cancellationToken: cancellationToken);
@@ -180,7 +180,8 @@ namespace Csrs.Interfaces.Dynamics
             string partyId,
             bool isSent,
             CancellationToken cancellationToken,
-            ILogger logger)
+            ILogger logger,
+            int? sentByValue = null)
         {
             ArgumentNullException.ThrowIfNull(dynamicsClient);
 
@@ -213,6 +214,10 @@ namespace Csrs.Interfaces.Dynamics
             List<string> orderbyTask = new List<string> { "createdon desc" };
             List<string> expandTask = new List<string> { "createdby", "modifiedby", "ownerid", "owninguser", "regardingobjectid_ssg_csrsfile_task" };
             string filterTasks = $"_regardingobjectid_value eq {fileId} and fams_origin eq 451190000";
+            if (sentByValue.HasValue)
+            {
+                filterTasks += $" and fams_sentby eq {sentByValue.Value}";
+            }
 
             var tasks = await dynamicsClient.Tasks.GetAsync(
                 orderby: orderbyTask,

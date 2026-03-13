@@ -54,7 +54,16 @@ namespace Csrs.Api.Services
 
                     _logger.LogDebug("IsSent={IsSent}, Processing FileId={FileId}", isSent, file.SsgCsrsfileid);
 
-                    MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection dynamicsMessages = await _dynamicsClient.GetCommunicationMessagesByFile(file.SsgCsrsfileid, partyId, isSent, cancellationToken, _logger);
+                    int? sentByValue = null;
+                    if (isSent)
+                    {
+                        if (file._ssgPayorValue == partyId)
+                            sentByValue = (int)FamsSentBy.Payor;
+                        else if (file._ssgRecipientValue == partyId)
+                            sentByValue = (int)FamsSentBy.Recipient;
+                    }
+
+                    MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection dynamicsMessages = await _dynamicsClient.GetCommunicationMessagesByFile(file.SsgCsrsfileid, partyId, isSent, cancellationToken, _logger, sentByValue);
 
                     if (dynamicsMessages == null || dynamicsMessages.Value == null)
                     {
@@ -148,7 +157,7 @@ namespace Csrs.Api.Services
                         {
                             _logger.LogError(
                                 ex,
-                                "IsSent={IsSent}, ERROR OCCURRED getting attachment list for MessageId={MessageId}, Subject={Subject}: {Message}", 
+                                "IsSent={IsSent}, ERROR OCCURRED getting attachment list for MessageId={MessageId}, Subject={Subject}: {Message}",
                                 isSent,
                                 message.SsgCsrscommunicationmessageid,
                                 message.SsgCsrsmessagesubject,
@@ -178,15 +187,17 @@ namespace Csrs.Api.Services
         {
             _logger.LogDebug("Set party message read request recieved");
 
-            var select = new List<string>() {"ssg_csrsmessageread"};
+            var select = new List<string>() { "ssg_csrsmessageread" };
 
             var communicationMessage = await _dynamicsClient.Ssgcsrscommunicationmessages.GetByKeyAsync(messageGuid, select, null, cancellationToken);
-            if (communicationMessage is null) {
+            if (communicationMessage is null)
+            {
                 _logger.LogInformation("No associated message Guid, cannot set message to read");
                 throw new HttpOperationException("Incorrect message Guid");
             }
 
-            if (communicationMessage.SsgCsrsmessageread == false) {
+            if (communicationMessage.SsgCsrsmessageread == false)
+            {
                 communicationMessage.SsgCsrsmessageread = true;
 
                 await _dynamicsClient.Ssgcsrscommunicationmessages.UpdateAsync(messageGuid, communicationMessage, cancellationToken);

@@ -135,11 +135,11 @@ namespace Csrs.Api.Features.UserRequests
 
                 if (party.SsgCsrspartyid == originFile._ssgPayorValue)
                 {
-                    task.FamsSentby = (int)FamsSendBy.Payor;
+                    task.FamsSentby = (int)FamsSentBy.Payor;
                 }
                 else if (party.SsgCsrspartyid == originFile._ssgRecipientValue)
                 {
-                    task.FamsSentby = (int)FamsSendBy.Recipient;
+                    task.FamsSentby = (int)FamsSentBy.Recipient;
                 }
                 else
                 {
