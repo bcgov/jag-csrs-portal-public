@@ -52,7 +52,7 @@ namespace Csrs.Interfaces.Dynamics
 
         public static async Task<MicrosoftDynamicsCRMssgCsrsfile> GetFileByPartyAndId(this IDynamicsClient dynamicsClient, string partyId, string fileId, CancellationToken cancellationToken)
         {
-            
+
             ArgumentNullException.ThrowIfNull(dynamicsClient);
 
             if (string.IsNullOrEmpty(partyId) || string.IsNullOrEmpty(fileId))
@@ -62,7 +62,7 @@ namespace Csrs.Interfaces.Dynamics
 
             try
             {
-                
+
                 var filter = $"(_ssg_recipient_value eq {partyId} or _ssg_payor_value eq {partyId}) and ssg_csrsfileid eq {fileId}";
                 var select = new List<string> { "ssg_csrsfileid", "ssg_filenumber" };
 
@@ -87,7 +87,7 @@ namespace Csrs.Interfaces.Dynamics
 
             List<string> select = new List<string> { "ssg_csrspartyid" };
             List<string> orderby = new List<string> { "ssg_bceid_last_update desc" };
-            string filter = $"ssg_bceid_guid eq '{bceid}' and {ActiveStateCode}"; 
+            string filter = $"ssg_bceid_guid eq '{bceid}' and {ActiveStateCode}";
             try
             {
                 var parties = await dynamicsClient.Ssgcsrsparties.GetAsync(filter: filter, orderby: orderby, cancellationToken: cancellationToken);
@@ -169,16 +169,16 @@ namespace Csrs.Interfaces.Dynamics
             fileId = GuidGuard(fileId);
 
             string filter = $"ssg_csrsfileid eq {fileId}";
-            List<string> select = new List<string> { "ssg_csrsfileid", "ssg_filenumber", "_ownerid_value", "_owninguser_value", "_owningteam_value" };
-           
+            List<string> select = new List<string> { "ssg_csrsfileid", "ssg_filenumber", "_ownerid_value", "_owninguser_value", "_owningteam_value", "_ssg_payor_value", "_ssg_recipient_value" };
+
             return await dynamicsClient.Ssgcsrsfiles.GetByKeyAsync(fileId, select: select, expand: null, cancellationToken: cancellationToken);
         }
 
         public static async Task<MicrosoftDynamicsCRMssgCsrscommunicationmessageCollection> GetCommunicationMessagesByFile(
-            this IDynamicsClient dynamicsClient, 
-            string fileId, 
-            string partyId, 
-            bool isSent, 
+            this IDynamicsClient dynamicsClient,
+            string fileId,
+            string partyId,
+            bool isSent,
             CancellationToken cancellationToken,
             ILogger logger)
         {
@@ -280,7 +280,7 @@ namespace Csrs.Interfaces.Dynamics
             referenceNumber = Escape(referenceNumber);
 
             string filter = $"ssg_referencenumber eq '{referenceNumber}'";
-            var  parties = await dynamicsClient.Ssgcsrsparties.GetAsync(filter: filter, cancellationToken: cancellationToken);
+            var parties = await dynamicsClient.Ssgcsrsparties.GetAsync(filter: filter, cancellationToken: cancellationToken);
             return parties;
         }
 
@@ -344,10 +344,10 @@ namespace Csrs.Interfaces.Dynamics
 
             return role;
         }
-        
 
 
-public static async Task<MicrosoftDynamicsCRMssgCsrscommunicationmessage> GetCommunicationMessagesByPartyAndIdAsync(this IDynamicsClient dynamicsClient, string partyId, string messageId, CancellationToken cancellationToken)
+
+        public static async Task<MicrosoftDynamicsCRMssgCsrscommunicationmessage> GetCommunicationMessagesByPartyAndIdAsync(this IDynamicsClient dynamicsClient, string partyId, string messageId, CancellationToken cancellationToken)
         {
 
             ArgumentNullException.ThrowIfNull(dynamicsClient);
@@ -356,7 +356,7 @@ public static async Task<MicrosoftDynamicsCRMssgCsrscommunicationmessage> GetCom
             messageId = GuidGuard(messageId);
 
             var filter = $"(_ssg_toparty_value eq {partyId} or _ssg_fromparty_value eq {partyId}) and ssg_csrscommunicationmessageid eq {messageId}";
-            var select = new List<string> { "ssg_csrscommunicationmessageid" , "ssg_csrsmessagesubject" };
+            var select = new List<string> { "ssg_csrscommunicationmessageid", "ssg_csrsmessagesubject" };
 
             var messages = await dynamicsClient.Ssgcsrscommunicationmessages.GetAsync(filter: filter, select: select, cancellationToken: cancellationToken);
 
@@ -460,7 +460,7 @@ public static async Task<MicrosoftDynamicsCRMssgCsrscommunicationmessage> GetCom
         {
 
             relativeUrl = Escape(relativeUrl);
-            
+
             var filter = $"relativeurl eq '{relativeUrl}'";
             var select = new List<string> { "sharepointdocumentlocationid" };
 
