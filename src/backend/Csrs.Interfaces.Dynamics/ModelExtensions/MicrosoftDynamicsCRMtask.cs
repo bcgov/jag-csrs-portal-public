@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Csrs.Interfaces.Dynamics.Models
 {
-    
+
     class MicrosoftDynamicsCRMtaskMetadata
     {
     }
@@ -19,5 +19,8 @@ namespace Csrs.Interfaces.Dynamics.Models
 
         [JsonProperty(PropertyName = "fams_origin")]
         public int? FamsOrigin { get; set; }
+
+        [JsonProperty(PropertyName = "fams_sentby")]
+        public int? FamsSentby { get; set; }
     }
 }

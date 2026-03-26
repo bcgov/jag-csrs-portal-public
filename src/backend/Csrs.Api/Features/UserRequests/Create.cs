@@ -47,7 +47,7 @@ namespace Csrs.Api.Features.UserRequests
                 IAccountService accountService,
                 IFileService fileService,
                 ILogger<Handler> logger,
-                ITaskService taskService )
+                ITaskService taskService)
             {
                 _dynamicsClient = dynamicsClient ?? throw new ArgumentNullException(nameof(dynamicsClient));
                 _userService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -76,7 +76,7 @@ namespace Csrs.Api.Features.UserRequests
                     _logger.LogInformation("No BCeID on authenticated user, cannot create User Request");
                     return new Response("Unauthenticated");
                 }
-                
+
                 _logger.AddBCeIdGuid(userId);
                 MicrosoftDynamicsCRMssgCsrspartyCollection parties = await _dynamicsClient.GetPartyByBCeIdAsync(userId, cancellationToken);
 
@@ -99,7 +99,7 @@ namespace Csrs.Api.Features.UserRequests
                     Prioritycode = 1,   // Normal
                     Statuscode = 2,     // Not Started
                     Scheduledend = DateTimeOffset.UtcNow
-                };             
+                };
                 //Get the file
                 _logger.AddFileId(request.FileId);
                 MicrosoftDynamicsCRMssgCsrsfile originFile;
@@ -133,6 +133,19 @@ namespace Csrs.Api.Features.UserRequests
 
                 task.RegardingobjectidSsgCsrsfileODataBind = _dynamicsClient.GetEntityURI("ssg_csrsfiles", originFile.SsgCsrsfileid);
 
+                if (party.SsgCsrspartyid == originFile._ssgPayorValue)
+                {
+                    task.FamsSentby = (int)FamsSentBy.Payor;
+                }
+                else if (party.SsgCsrspartyid == originFile._ssgRecipientValue)
+                {
+                    task.FamsSentby = (int)FamsSentBy.Recipient;
+                }
+                else
+                {
+                    _logger.LogWarning("Party {PartyId} is neither Payor nor Recipient on file {FileId}", party.SsgCsrspartyid, request.FileId);
+                }
+
                 //ap.Statecode = 0;  defaults in DB
                 MicrosoftDynamicsCRMtask result = await _dynamicsClient.Tasks.CreateAsync(task);
                 _logger.AddProperty("ActivityId", result.Activityid);
@@ -146,7 +159,7 @@ namespace Csrs.Api.Features.UserRequests
                         request.RequestType
                     );
                 }
-                
+
                 return new Response("User Request Created");
             }
         }
