@@ -5,7 +5,7 @@ namespace Csrs.Api.Services
     public interface ITaskService
     {
 
-        Task<bool> CreateTask(string fileId, string subject, string description, CancellationToken cancellationToken);
+        Task<bool> CreateTask(string fileId, string partyId, string subject, string description, CancellationToken cancellationToken);
 
     }
 }

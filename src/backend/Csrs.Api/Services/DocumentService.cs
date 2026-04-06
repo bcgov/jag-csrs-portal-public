@@ -25,7 +25,7 @@ namespace Csrs.Api.Services
             IDynamicsClient dynamicsClient,
             ILogger<DocumentService> logger,
             FileManagerClient fileManagerClient,
-            IUserService userService, 
+            IUserService userService,
             ITaskService taskService)
         {
             _dynamicsClient = dynamicsClient ?? throw new ArgumentNullException(nameof(dynamicsClient));
@@ -38,7 +38,7 @@ namespace Csrs.Api.Services
         {
             // get the file.
             if (string.IsNullOrEmpty(serverRelativeUrl) || string.IsNullOrEmpty(documentType) || string.IsNullOrEmpty(entityId) || string.IsNullOrEmpty(entityName)) return new BadRequestResult();
-            
+
             var dynamicsFile = await CanAccessMessageDocument(entityId, _userService.GetBCeIDUserId(), cancellationToken);
 
             if (dynamicsFile is null) return new NotFoundResult();
@@ -82,11 +82,11 @@ namespace Csrs.Api.Services
                 case "ssg_csrscommunicationmessage":
 
                     var message = await CanAccessMessageDocument(entityId, _userService.GetBCeIDUserId(), cancellationToken);
-                    
+
                     if (message is null) return new List<FileSystemItem>();
 
                     folderName = message.GetDocumentFolderName();
-                    
+
                     break;
 
                 default: return new List<FileSystemItem>();
@@ -105,11 +105,14 @@ namespace Csrs.Api.Services
             var dynamicsFile = await CanAccessDocument(entityId, _userService.GetBCeIDUserId(), cancellationToken);
 
             MicrosoftDynamicsCRMssgCsrspartyCollection parties = await _dynamicsClient.GetPartyByBCeIdAsync(_userService.GetBCeIDUserId(), cancellationToken);
-            MicrosoftDynamicsCRMssgCsrsparty party;
+            MicrosoftDynamicsCRMssgCsrsparty party = null;
             string partyname = "";
+            string partyId = null;
             if (parties.Value.Count > 0)
             {
-                partyname = parties.Value.First().SsgFullname;
+                party = parties.Value.First();
+                partyname = party.SsgFullname;
+                partyId = party.SsgCsrspartyid;
             }
             else
             {
@@ -126,7 +129,7 @@ namespace Csrs.Api.Services
 
             var folderName = dynamicsFile.GetDocumentFolderName();
 
-           // await CreateAccountDocumentLocation(dynamicsFile, folderName, cancellationToken);
+            // await CreateAccountDocumentLocation(dynamicsFile, folderName, cancellationToken);
 
             // call the web service
             var uploadRequest = new UploadFileRequest
@@ -142,7 +145,8 @@ namespace Csrs.Api.Services
             try
             {
                 uploadResult = _fileManagerClient.UploadFile(uploadRequest);
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Issue with file upload.");
             }
@@ -153,7 +157,7 @@ namespace Csrs.Api.Services
                 _logger.LogInformation("Success");
                 result.Message = "Uploaded Successfully";
                 result.Uploaded = true;
-                result.TaskCreated = await createTask(entityId, dynamicsFile.SsgFilenumber, fileName, folderName, entityName, partyname, type, cancellationToken);
+                result.TaskCreated = await createTask(entityId, partyId, dynamicsFile.SsgFilenumber, fileName, folderName, entityName, partyname, type, cancellationToken);
             }
             else
             {
@@ -178,75 +182,75 @@ namespace Csrs.Api.Services
         {
             var fileSystemItemVMList = new List<FileSystemItem>();
 
-            if (string.IsNullOrEmpty(entityId) || 
-                string.IsNullOrEmpty(entityName) || 
+            if (string.IsNullOrEmpty(entityId) ||
+                string.IsNullOrEmpty(entityName) ||
                 string.IsNullOrEmpty(documentType)) return fileSystemItemVMList;
 
             //Three retries? Why only here?
             //for (int i = 0; i < 3; i++)
             //{
-                try
+            try
+            {
+
+                // call the web service
+                var request = new FolderFilesRequest
                 {
-                    
-                    // call the web service
-                    var request = new FolderFilesRequest
+                    EntityId = entityId,
+                    EntityName = entityName,
+                    FolderName = folderName,
+                    DocumentType = documentType
+
+                };
+
+                var result = _fileManagerClient.FolderFiles(request);
+
+                if (result != null && result.ResultStatus == ResultStatus.Success &&
+                    result.Files != null && result.Files.Count > 0)
+                {
+
+                    // convert the results to the view model.
+                    foreach (var fileDetails in result.Files)
                     {
-                        EntityId = entityId,
-                        EntityName = entityName,
-                        FolderName = folderName,
-                        DocumentType = documentType
-
-                    };
-
-                    var result = _fileManagerClient.FolderFiles(request);
-
-                    if (result != null && result.ResultStatus == ResultStatus.Success && 
-                        result.Files != null && result.Files.Count > 0)
-                    {
-
-                        // convert the results to the view model.
-                        foreach (var fileDetails in result.Files)
+                        var name = fileDetails.Name;
+                        if (fileDetails.Name.IndexOf("__") != -1)
                         {
-                            var name = fileDetails.Name;
-                            if (fileDetails.Name.IndexOf("__") != -1)
-                            {
-                                name = fileDetails.Name.Substring(fileDetails.Name.IndexOf("__") + 2);
-                            }
-                                var fileSystemItemVM = new FileSystemItem
-                            {
-                                // remove the document type text from file name
-                                
-                                Name = name,
-                                // convert size from bytes (original) to KB
-                                Size = fileDetails.Size,
-                                ServerRelativeUrl = fileDetails.ServerRelativeUrl,
-                                TimeCreated = fileDetails.TimeCreated,
-                                TimeLastModified = fileDetails.TimeLastModified,
-                                DocumentType = fileDetails.DocumentType
-                            };
-
-                            fileSystemItemVMList.Add(fileSystemItemVM);
-
+                            name = fileDetails.Name.Substring(fileDetails.Name.IndexOf("__") + 2);
                         }
+                        var fileSystemItemVM = new FileSystemItem
+                        {
+                            // remove the document type text from file name
 
-                        return fileSystemItemVMList;
+                            Name = name,
+                            // convert size from bytes (original) to KB
+                            Size = fileDetails.Size,
+                            ServerRelativeUrl = fileDetails.ServerRelativeUrl,
+                            TimeCreated = fileDetails.TimeCreated,
+                            TimeLastModified = fileDetails.TimeLastModified,
+                            DocumentType = fileDetails.DocumentType
+                        };
+
+                        fileSystemItemVMList.Add(fileSystemItemVM);
 
                     }
 
-                    if (result != null && result.ResultStatus == ResultStatus.Success &&
-                        result.Files != null && result.Files.Count == 0)
-                    {
-                        _logger.LogInformation($"Folder does not exist or empty for entity {entityName}, entityId {entityId}, document type {documentType} ");
-                        return fileSystemItemVMList;
-                    }
+                    return fileSystemItemVMList;
+
+                }
+
+                if (result != null && result.ResultStatus == ResultStatus.Success &&
+                    result.Files != null && result.Files.Count == 0)
+                {
+                    _logger.LogInformation($"Folder does not exist or empty for entity {entityName}, entityId {entityId}, document type {documentType} ");
+                    return fileSystemItemVMList;
+                }
 
                 _logger.LogError($"ERROR in getting folder files for entity {entityName}, entityId {entityId}, document type {documentType} ");
 
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Error getting SharePoint File List");
-                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error getting SharePoint File List");
+            }
             //}
             return fileSystemItemVMList;
         }
@@ -323,19 +327,19 @@ namespace Csrs.Api.Services
             }
         }
 
-        private async Task<bool> createTask(string fileId, string fileNumber, string fileName, string folderName, string entityName, string partyName, string docType, CancellationToken cancellationToken)
+        private async Task<bool> createTask(string fileId, string partyId, string fileNumber, string fileName, string folderName, string entityName, string partyName, string docType, CancellationToken cancellationToken)
         {
 
             string subject = $"File: {fileNumber} - Review Uploaded Document";
             string description = $"Party: {partyName} \n" +
                           $"Document Type: {docType} \n" +
                           $"Document Location: {entityName}\\{folderName}\\{fileName}";
-            
+
             MicrosoftDynamicsCRMtask task = new MicrosoftDynamicsCRMtask();
             task.Subject = subject;
             task.Description = description;
 
-            return await _taskService.CreateTask(fileId, subject, description, cancellationToken);
+            return await _taskService.CreateTask(fileId, partyId, subject, description, cancellationToken);
 
         }
 
