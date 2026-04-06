@@ -1,28 +1,22 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { Inject } from '@angular/core';
-import { LoggerService } from '@core/services/logger.service';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-} from '@angular/forms';
-import { HttpClient, HttpStatusCode, HttpResponse } from '@angular/common/http';
-import { AppConfigService } from 'app/services/app-config.service';
-import { MatDialog } from '@angular/material/dialog';
-import { ModalDialogComponent } from 'app/components/modal-dialog/modal-dialog.component';
-import { FileService } from 'app/api/api/file.service';
-import { MatTableDataSource } from '@angular/material/table';
-import { ConfirmDialogComponent } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { DatePipe } from '@angular/common';
+import { HttpClient, HttpResponse, HttpStatusCode } from '@angular/common/http';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { MatTableDataSource } from '@angular/material/table';
+import { ActivatedRoute, Router } from '@angular/router';
+import { LoggerService } from '@core/services/logger.service';
+import { ConfirmDialogComponent } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { AccountService } from 'app/api/api/account.service';
-import { AccountFileSummary } from 'app/api/model/accountFileSummary.model';
-import { UserRequestService } from 'app/api/api/userRequest.service';
 import { DocumentService } from 'app/api/api/document.service';
+import { FileService } from 'app/api/api/file.service';
 import { MessageService } from 'app/api/api/message.service';
-import { UserRequest } from '../../api';
-import { Message } from '../../api';
-import { Router, ActivatedRoute } from "@angular/router";
-import { List } from 'ts-generic-collections-linq';
+import { UserRequestService } from 'app/api/api/userRequest.service';
+import { AccountFileSummary } from 'app/api/model/accountFileSummary.model';
+import { ModalDialogComponent } from 'app/components/modal-dialog/modal-dialog.component';
+import { AppConfigService } from 'app/services/app-config.service';
+import { Message, UserRequest } from '../../api';
+
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatTabGroup } from '@angular/material/tabs';
 
@@ -30,16 +24,14 @@ import { MatTabGroup } from '@angular/material/tabs';
   selector: 'app-communication',
   templateUrl: './communication.component.html',
   styleUrls: ['./communication.component.scss'],
-  providers: [DatePipe]
+  providers: [DatePipe],
 })
-
 export class CommunicationComponent implements OnInit {
   dataSource = new MatTableDataSource();
   @ViewChild('paginator') paginator: MatPaginator;
 
   dataSourceOutbox = new MatTableDataSource();
   @ViewChild('paginatorOutbox') paginatorOutbox: MatPaginator;
-
 
   displayedColumns: string[] = ['id', 'name', 'username', 'email', 'phone'];
   displayedColumnsOutbox: string[] = ['id', 'name', 'username', 'phone'];
@@ -62,20 +54,21 @@ export class CommunicationComponent implements OnInit {
   public currentPage541 = 0;
   public totalSize541 = 0;
 
-  constructor(private _formBuilder: FormBuilder,
-              @Inject(LoggerService) private logger,
-              @Inject(AppConfigService) private appConfigService,
-              @Inject(FileService) private fileService,
-              @Inject(AccountService) private accountService,
-              @Inject(UserRequestService) private userRequestService,
-              @Inject(DocumentService) private documentService,
-              @Inject(MessageService) private messageService,
-              private _http: HttpClient,
-              public dialog: MatDialog,
-              private datePipe: DatePipe,
-              private route: ActivatedRoute,
-              @Inject(Router) private router
-              ) {}
+  constructor(
+    private _formBuilder: FormBuilder,
+    @Inject(LoggerService) private logger,
+    @Inject(AppConfigService) private appConfigService,
+    @Inject(FileService) private fileService,
+    @Inject(AccountService) private accountService,
+    @Inject(UserRequestService) private userRequestService,
+    @Inject(DocumentService) private documentService,
+    @Inject(MessageService) private messageService,
+    private _http: HttpClient,
+    public dialog: MatDialog,
+    private datePipe: DatePipe,
+    private route: ActivatedRoute,
+    @Inject(Router) private router,
+  ) {}
 
   showValidationMessages: boolean;
   validationMessages: any[];
@@ -84,12 +77,12 @@ export class CommunicationComponent implements OnInit {
   unreadCnt: any = 0;
 
   inboxFormGroup: FormGroup;
-  messages: List<Message> = new List<Message>();
+  messages: Message[] = [];
 
   selectedOutboxFile: any;
   selectedOutboxMessage: any;
   outboxFormGroup: FormGroup;
-  outboxMessages: List<Message> = new List<Message>();
+  outboxMessages: Message[] = [];
 
   uploadFormGroup: FormGroup;
   bceIdLink: string;
@@ -110,14 +103,14 @@ export class CommunicationComponent implements OnInit {
   curDateStr: string;
   portalUser: string;
   contactSubjects = [
-    { id: 1, name: "Request a call" },
-    { id: 2, name: "File withdrawal" },
-    { id: 3, name: "Section 7 expenses withdrawal" },
-    { id: 4, name: "Clerical error on the Statement of Recalculation" },
-    { id: 5, name: "Safety concerns" },
-    { id: 6, name: "Update contact information" },
-    { id: 7, name: "Change preferred method of communication" },
-    { id: 8, name: "Other" }
+    { id: 1, name: 'Request a call' },
+    { id: 2, name: 'File withdrawal' },
+    { id: 3, name: 'Section 7 expenses withdrawal' },
+    { id: 4, name: 'Clerical error on the Statement of Recalculation' },
+    { id: 5, name: 'Safety concerns' },
+    { id: 6, name: 'Update contact information' },
+    { id: 7, name: 'Change preferred method of communication' },
+    { id: 8, name: 'Other' },
   ];
 
   accountSummary: HttpResponse<AccountFileSummary>;
@@ -130,9 +123,7 @@ export class CommunicationComponent implements OnInit {
   outboxLoaded = false;
 
   ngOnInit(): void {
-
-    this.route.queryParams
-    .subscribe(params => {
+    this.route.queryParams.subscribe((params) => {
       //this.logger.info("params", params);
       this.selectedTab = params.index;
       this.selectedFileNumber = params.fileNumber;
@@ -148,7 +139,6 @@ export class CommunicationComponent implements OnInit {
       this.isMobile = false;
     }
 
-
     this.curDateStr = this.datePipe.transform(this.curDate, 'yyyy-MM-dd');
     this.getAccountInfo();
     this.getMessages();
@@ -161,26 +151,28 @@ export class CommunicationComponent implements OnInit {
     });
 
     this.documentTypes = [
-      { id: 'Order_or_Written_Agreement', docType: 'Order or Written Agreement'},
-      { id: 'Notice_of_Assessment', docType: 'Notice of Assessment'},
-      { id: 'Income_Tax_Return', docType: 'Income Tax Return'},
-      { id: 'Court_Application', docType: 'Court Application'},
-      {id: 'Other', docType: 'Other'},
+      {
+        id: 'Order_or_Written_Agreement',
+        docType: 'Order or Written Agreement',
+      },
+      { id: 'Notice_of_Assessment', docType: 'Notice of Assessment' },
+      { id: 'Income_Tax_Return', docType: 'Income Tax Return' },
+      { id: 'Court_Application', docType: 'Court Application' },
+      { id: 'Other', docType: 'Other' },
     ];
 
     this.contactFormGroup = this._formBuilder.group({
       contactFile: [null, Validators.required],
       contactSubject: [null, Validators.required],
-      contactMessage: [null, [Validators.required, Validators.maxLength(500)]]
+      contactMessage: [null, [Validators.required, Validators.maxLength(500)]],
     });
 
     this.inboxFormGroup = this._formBuilder.group({
-      inboxFile: [null, ]
+      inboxFile: [null],
     });
     this.outboxFormGroup = this._formBuilder.group({
-      outboxFile: [null, ]
+      outboxFile: [null],
     });
-
   }
 
   getAccountInfo() {
@@ -188,8 +180,11 @@ export class CommunicationComponent implements OnInit {
       next: (data) => {
         this.accountSummary = data;
         this.portalUser = this.accountSummary.body.user.firstName;
-        if (this.accountSummary.status === HttpStatusCode.Ok &&
-          (this.accountSummary.body.files != null && this.accountSummary.body.files.length > 0)) {
+        if (
+          this.accountSummary.status === HttpStatusCode.Ok &&
+          this.accountSummary.body.files != null &&
+          this.accountSummary.body.files.length > 0
+        ) {
           this.files = this.accountSummary.body.files;
           if (this.files.length == 1) {
             this.inboxFile.patchValue('all');
@@ -209,7 +204,8 @@ export class CommunicationComponent implements OnInit {
           //this.logger.info('Backend returned ', e);
         }
       },
-      complete: () => this.logger.info('apiAccountGet<AccountFileSummary> is completed')
+      complete: () =>
+        this.logger.info('apiAccountGet<AccountFileSummary> is completed'),
     });
   }
 
@@ -234,7 +230,7 @@ export class CommunicationComponent implements OnInit {
           //this.logger.info('Backend returned ', e);
         }
       },
-      complete: () => this.logger.info('apiMessageListGet is completed')
+      complete: () => this.logger.info('apiMessageListGet is completed'),
     });
   }
 
@@ -247,7 +243,6 @@ export class CommunicationComponent implements OnInit {
         this.outboxMessages = data.body;
         this.getRemoteData();
         this.outboxLoaded = true;
-
       },
       error: (e) => {
         this.outboxLoaded = true;
@@ -258,7 +253,7 @@ export class CommunicationComponent implements OnInit {
           //this.logger.info('Backend returned ', e);
         }
       },
-      complete: () => this.logger.info('apiMessageListOutboxGet is completed')
+      complete: () => this.logger.info('apiMessageListOutboxGet is completed'),
     });
   }
 
@@ -410,7 +405,6 @@ export class CommunicationComponent implements OnInit {
     this.iterator();
   }
 
-  
   private iteratorOutbox() {
     const end = (this.currentPage541 + 1) * this.pageSize541;
     const start = this.currentPage541 * this.pageSize541;
@@ -430,7 +424,7 @@ export class CommunicationComponent implements OnInit {
       this.showValidationMessages = true;
       if (this.contactFile.hasError) {
         for (const error in this.contactFile.errors) {
-          this.validationMessages.push('Contact file '+error.toString());
+          this.validationMessages.push('Contact file ' + error.toString());
         }
       }
       if (this.contactSubject.hasError) {
@@ -441,7 +435,9 @@ export class CommunicationComponent implements OnInit {
       if (this.contactMessage.hasError) {
         for (const error in this.contactMessage.errors) {
           if (error.toString() == 'maxlength') {
-            this.validationMessages.push('Contact Message Max Length 500 Characters');
+            this.validationMessages.push(
+              'Contact Message Max Length 500 Characters',
+            );
           } else {
             this.validationMessages.push('Contact Message ' + error.toString());
           }
@@ -455,50 +451,52 @@ export class CommunicationComponent implements OnInit {
         fileId: this.selectedContactFile.fileId,
         fileNo: this.selectedContactFile.fileNumber,
         requestType: this.contactSubject.value,
-        requestMessage: this.contactMessage.value
-      }
-      this.userRequestService.apiUserrequestCreatePost(createUserRequest).subscribe({
-        next: (outData: any) => {
-          this._reponse = outData;
-
+        requestMessage: this.contactMessage.value,
+      };
+      this.userRequestService
+        .apiUserrequestCreatePost(createUserRequest)
+        .subscribe({
+          next: (outData: any) => {
+            this._reponse = outData;
 
             this.data = {
               type: 'info',
               title: 'Success - Message sent',
-              content: 'Your message to the Child Support Recalculation team was sent successfully.',
+              content:
+                'Your message to the Child Support Recalculation team was sent successfully.',
               weight: 'bold',
-              color: 'green'
+              color: 'green',
             };
             this.openDialog();
-        },
-        error: (e) => {
-          if (e.error instanceof Error) {
-            //this.logger.error(e.error.message);
+          },
+          error: (e) => {
+            if (e.error instanceof Error) {
+              //this.logger.error(e.error.message);
 
-            this.data = {
-              type: 'error',
-              title: 'Error encountered',
-              content: e.error.message,
-              weight: 'normal',
-              color: 'red'
-            };
-            this.openDialog();
-
-          } else {
-            //Backend returns unsuccessful response codes such as 404, 500 etc.
-            //this.logger.info('Backend returned ', e);
-            this.data = {
-              type: 'error',
-              title: 'Contact Request Failed',
-              content: e.error.message,
-              weight: 'normal',
-              color: 'red'
-            };
-            this.openDialog();
-          }
-        },
-        complete: () => this.logger.info('apiUserrequestCreatePost is completed')
-      })
+              this.data = {
+                type: 'error',
+                title: 'Error encountered',
+                content: e.error.message,
+                weight: 'normal',
+                color: 'red',
+              };
+              this.openDialog();
+            } else {
+              //Backend returns unsuccessful response codes such as 404, 500 etc.
+              //this.logger.info('Backend returned ', e);
+              this.data = {
+                type: 'error',
+                title: 'Contact Request Failed',
+                content: e.error.message,
+                weight: 'normal',
+                color: 'red',
+              };
+              this.openDialog();
+            }
+          },
+          complete: () =>
+            this.logger.info('apiUserrequestCreatePost is completed'),
+        });
       this.clearContactForm();
       setTimeout(() => {
         this.getOutboxMessages();
@@ -525,7 +523,7 @@ export class CommunicationComponent implements OnInit {
     this.toggleRow = element;
   }
 
-    ontableOutbox(element) {
+  ontableOutbox(element) {
     if (element) {
       for (var i = 0; i < this.outboxMessages.length; i++) {
         if (this.outboxMessages[i].messageId == element.messageId) {
@@ -536,7 +534,6 @@ export class CommunicationComponent implements OnInit {
       this.getOutboxMessages();
     }
     this.toggleRowOutbox = element;
-
   }
 
   onUpload(): void {
@@ -567,109 +564,106 @@ export class CommunicationComponent implements OnInit {
     }
   }
 
-onFileSelected(event) {
+  onFileSelected(event) {
     this.selectedFile = event.target.files[0];
     //this.logger.info('Selected File', this.selectedFile);
 
     // this.isDisabled = true;
     // this.isUploaing = false;
 
-    if (this.selectedFile.type !== 'application/pdf' &&
-        this.selectedFile.type !== 'image/gif' &&
-        this.selectedFile.type !== 'image/jpg' &&
-        this.selectedFile.type !== 'image/jpeg' &&
-        this.selectedFile.type !== 'image/png')
-    {
+    if (
+      this.selectedFile.type !== 'application/pdf' &&
+      this.selectedFile.type !== 'image/gif' &&
+      this.selectedFile.type !== 'image/jpg' &&
+      this.selectedFile.type !== 'image/jpeg' &&
+      this.selectedFile.type !== 'image/png'
+    ) {
       this.selectedFile = null;
       this.data = {
         type: 'error',
         title: ' Selected file is not a supported file type.',
         content: 'Supported file types are .pdf, .gif, .jpg, .jpeg, .png.',
         weight: 'normal',
-        color: 'red'
+        color: 'red',
       };
       this.openDialog();
     }
 
-    if (this.selectedFile.size >= 10000000)
-    {
+    if (this.selectedFile.size >= 10000000) {
       this.selectedFile = null;
       this.data = {
         type: 'error',
         title: ' Selected file is over the maximum supported file size.',
         content: 'Maximum supported file size is 10MB.',
         weight: 'normal',
-        color: 'red'
+        color: 'red',
       };
       this.openDialog();
     }
 
-
-
-    if (this.selectedFile.name.length > 128)
-    {
+    if (this.selectedFile.name.length > 128) {
       this.selectedFile = null;
       this.data = {
         type: 'error',
         title: ' Selected file name over maximum length.',
         content: 'Maximum length can not be longer than 128 characters.',
         weight: 'normal',
-        color: 'red'
+        color: 'red',
       };
       this.openDialog();
     }
 
-    var notAllowed = "";
-    var specialChars = "~#%&*()[]{}:;+@^<>|.?!/"; //"~#%&*{}\:<>?/+|;][”;
+    var notAllowed = '';
+    var specialChars = '~#%&*()[]{}:;+@^<>|.?!/'; //"~#%&*{}\:<>?/+|;][”;
     var dotIndex = this.selectedFile.name.lastIndexOf('.');
     if (dotIndex === -1) dotIndex = 0;
     if (dotIndex > 4) dotIndex = 4;
-    var name = this.selectedFile.name.substring(0,  this.selectedFile.name.length - dotIndex);
+    var name = this.selectedFile.name.substring(
+      0,
+      this.selectedFile.name.length - dotIndex,
+    );
 
     for (var j = 0; j < specialChars.length; j++) {
-        if (name.indexOf(specialChars[j]) > -1) {
-            notAllowed = notAllowed + specialChars[j];
-        }
+      if (name.indexOf(specialChars[j]) > -1) {
+        notAllowed = notAllowed + specialChars[j];
+      }
     }
 
-    if (notAllowed != "" )
-    {
+    if (notAllowed != '') {
       this.selectedFile = null;
       this.data = {
         type: 'error',
         title: ' Special characters in selected file name.',
         content: `Special characters ${notAllowed} should be removed from file name.`,
         weight: 'normal',
-        color: 'red'
+        color: 'red',
       };
       this.openDialog();
     }
-
-
   }
 
-onDeleteFile() {
+  onDeleteFile() {
     this.selectedFile = null;
     // this.isDisabled = false;
     // this.isUploaing = true;
   }
 
-openDialog(): void {
+  openDialog(): void {
     const dialogRef = this.dialog.open(ModalDialogComponent, {
       width: '450px',
       data: this.data,
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       //this.logger.info('Modal dialog was closed');
     });
   }
   openConfirmationDialog() {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent,{
-      width: '550px'
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '550px',
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       console.log(`Dialog result: ${result}`);
     });
   }
@@ -681,8 +675,7 @@ openDialog(): void {
       }
     }
     this.messageService.apiMessageReadGet(element.messageId).subscribe({
-      next: (data) => {
-      },
+      next: (data) => {},
       error: (e) => {
         if (e.error instanceof Error) {
           //this.logger.error(e.error.message);
@@ -691,66 +684,69 @@ openDialog(): void {
           //this.logger.info('Backend returned ', e);
         }
       },
-      complete: () => this.logger.info('apiMessageReadGet is completed')
-    })
+      complete: () => this.logger.info('apiMessageReadGet is completed'),
+    });
   }
 
   submitUploadedAttachment() {
     const fileData = new FormData();
     this.uploadDisabled = true;
     fileData.append('file', this.selectedFile, this.selectedFile.name);
-        //this.logger.info('File Data', fileData);
-     this.documentService.apiDocumentUploadattachmentPost(
+    //this.logger.info('File Data', fileData);
+    this.documentService
+      .apiDocumentUploadattachmentPost(
         this.selectedUploadFile.fileId,
-        "ssg_csrsfile",
+        'ssg_csrsfile',
         this.documentType.value,
-        this.selectedFile
-      ).subscribe({
-      next:  (data) => {
-        this._reponse = data;
-        this.data = {
+        this.selectedFile,
+      )
+      .subscribe({
+        next: (data) => {
+          this._reponse = data;
+          this.data = {
             type: 'info',
             title: 'Success - document uploaded',
-            content: 'Document uploaded to file #: ' + this.selectedUploadFile.fileNumber,
+            content:
+              'Document uploaded to file #: ' +
+              this.selectedUploadFile.fileNumber,
             weight: 'bold',
-            color: 'green'
+            color: 'green',
           };
           this.openDialog();
           this.uploadDisabled = false;
           setTimeout(() => {
             this.getOutboxMessages();
           }, 10000);
-      },
-      error: (e) => {
-        if (e.error instanceof Error) {
-          //this.logger.error(e.error.message);
-          this.data = {
-            type: 'error',
-            title: 'Error Encountered',
-            content: e.error.message,
-            weight: 'normal',
-            color: 'red'
-          };
-          this.openDialog();
-          this.uploadDisabled = false;
-
-        } else {
+        },
+        error: (e) => {
+          if (e.error instanceof Error) {
+            //this.logger.error(e.error.message);
+            this.data = {
+              type: 'error',
+              title: 'Error Encountered',
+              content: e.error.message,
+              weight: 'normal',
+              color: 'red',
+            };
+            this.openDialog();
+            this.uploadDisabled = false;
+          } else {
             // Backend returns unsuccessful response codes such as 404, 500 etc.
-          //this.logger.info('Backend returned ', e);
-          this.data = {
-            type: 'error',
-            title: 'Upload Failed',
-            content: e.error.message,
-            weight: 'normal',
-            color: 'red'
-          };
-          this.openDialog();
-          this.uploadDisabled = false;
+            //this.logger.info('Backend returned ', e);
+            this.data = {
+              type: 'error',
+              title: 'Upload Failed',
+              content: e.error.message,
+              weight: 'normal',
+              color: 'red',
+            };
+            this.openDialog();
+            this.uploadDisabled = false;
           }
-      },
-      complete: () => this.logger.info('apiFileUploadattachmentPost is completed')
+        },
+        complete: () =>
+          this.logger.info('apiFileUploadattachmentPost is completed'),
       });
-
   }
 
   selectTab(index?: number | null): void {
@@ -759,18 +755,32 @@ openDialog(): void {
     }
   }
 
-  downloadAttachment(messageId, serverRelativeUrl, subject, name) {
+  downloadAttachment(
+    messageId,
+    serverRelativeUrl,
+    subject,
+    name,
+    useFileEntity = false,
+  ) {
+    // For outbox messages (uploaded documents), attachments are associated with the File entity
+    // For inbox messages, attachments are associated with the Message entity
+    const entityName = useFileEntity
+      ? 'ssg_csrsfile'
+      : 'ssg_csrscommunicationmessage';
 
-    this.documentService.apiDocumentDownloadattachmentGet(
-      messageId,
-      "ssg_csrscommunicationmessage",
-      serverRelativeUrl,
-      subject,
-      'body', false,
-      { httpHeaderAccept: 'application/octet-stream' }
-    ).subscribe((response) => {
-      this.downLoadFile(response, subject, name);
-    });
+    this.documentService
+      .apiDocumentDownloadattachmentGet(
+        messageId,
+        entityName,
+        serverRelativeUrl,
+        subject,
+        'body',
+        false,
+        { httpHeaderAccept: 'application/octet-stream' },
+      )
+      .subscribe((response) => {
+        this.downLoadFile(response, subject, name);
+      });
   }
 
   downLoadFile(response: any, type: string, name: string) {
@@ -778,9 +788,10 @@ openDialog(): void {
     let binaryData = [];
     binaryData.push(response);
     let downloadLink = document.createElement('a');
-    downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, { type: dataType }));
-    if (name)
-      downloadLink.setAttribute('download', name);
+    downloadLink.href = window.URL.createObjectURL(
+      new Blob(binaryData, { type: dataType }),
+    );
+    if (name) downloadLink.setAttribute('download', name);
     document.body.appendChild(downloadLink);
     downloadLink.click();
 
@@ -793,21 +804,23 @@ openDialog(): void {
   }
 
   ViewAttachment(messageId, serverRelativeUrl, subject, name) {
-
-    this.documentService.apiDocumentDownloadattachmentGet(
-      messageId,
-      "ssg_csrscommunicationmessage",
-      serverRelativeUrl,
-      subject,
-      'body', false,
-      { httpHeaderAccept: 'application/octet-stream' }
-    ).subscribe((response) => {
-
-      let binaryData = [];
-      binaryData.push(response);
-      const fileURL = window.URL.createObjectURL(new Blob(binaryData, { type: 'application/pdf' }));
-      window.open(fileURL, '_blank');
-
-    });
+    this.documentService
+      .apiDocumentDownloadattachmentGet(
+        messageId,
+        'ssg_csrscommunicationmessage',
+        serverRelativeUrl,
+        subject,
+        'body',
+        false,
+        { httpHeaderAccept: 'application/octet-stream' },
+      )
+      .subscribe((response) => {
+        let binaryData = [];
+        binaryData.push(response);
+        const fileURL = window.URL.createObjectURL(
+          new Blob(binaryData, { type: 'application/pdf' }),
+        );
+        window.open(fileURL, '_blank');
+      });
   }
 }

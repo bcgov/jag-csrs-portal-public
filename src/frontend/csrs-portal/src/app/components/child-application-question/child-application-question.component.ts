@@ -1,41 +1,31 @@
-import { Component, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators,
-  FormArray,
-} from '@angular/forms';
-import { HttpClient, HttpStatusCode, HttpResponse } from '@angular/common/http';
-import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
-import { JsonPipe } from '@angular/common';
+import { HttpClient, HttpResponse } from '@angular/common/http';
+import { Component, Inject, OnInit } from '@angular/core';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { LoggerService } from '@core/services/logger.service';
+import { ConfirmDialogComponent } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
 import { AccountService } from 'app/api/api/account.service';
 import { LookupService } from 'app/api/api/lookup.service';
-import { Inject } from '@angular/core';
-import { LoggerService } from '@core/services/logger.service';
-import { of } from 'rxjs';
-import { filter } from 'rxjs/operators';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { ConfirmDialogComponent } from '@shared/dialogs/confirm-dialog/confirm-dialog.component';
-import { List, Dictionary } from 'ts-generic-collections-linq';
-import { ModalDialogComponent } from 'app/components/modal-dialog/modal-dialog.component';
-import { DialogOptions } from '@shared/dialogs/dialog-options.model';
-import { Router, ActivatedRoute } from '@angular/router';
-import { OidcSecurityService, PublicEventsService } from 'angular-auth-oidc-client';
+
 import { MatDatepickerInputEvent } from '@angular/material/datepicker';
-import { MatSelectModule, MatSelectChange } from '@angular/material/select';
+import { MatSelectChange } from '@angular/material/select';
+import { Router } from '@angular/router';
+import { DialogOptions } from '@shared/dialogs/dialog-options.model';
+import {
+  OidcSecurityService,
+  PublicEventsService,
+} from 'angular-auth-oidc-client';
+import { ModalDialogComponent } from 'app/components/modal-dialog/modal-dialog.component';
 
 // -- import data structure
 import {
-  NewFileRequest,
-  PartyRole,
-  FileStatus,
-  Party,
   Child,
+  FileStatus,
   LookupValue,
-  CourtLookupValue
-  } from 'app/api/model/models';
+  NewFileRequest,
+  Party,
+  PartyRole,
+} from 'app/api/model/models';
 
 import { DatePipe } from '@angular/common';
 import { ModalDialogHtmlComponent } from '../modal-dialog-htmlcontent/modal-dialog-htmlcontent.component';
@@ -45,8 +35,6 @@ import { ModalDialogHtmlComponent } from '../modal-dialog-htmlcontent/modal-dial
   templateUrl: './child-application-question.component.html',
   styleUrls: ['./child-application-question.component.scss'],
 })
-
-
 export class ChildApplicationQuestionComponent implements OnInit {
   firstFormGroup: FormGroup;
   secondFormGroup: FormGroup;
@@ -78,7 +66,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
   _no: number = 867670001;
   _iDontKnow: number = 867670002;
 
-  _courtOrder: number       = 867670000;
+  _courtOrder: number = 867670000;
   _writtenAgreement: number = 867670001;
 
   data: any = null;
@@ -97,45 +85,46 @@ export class ChildApplicationQuestionComponent implements OnInit {
   birthOfDateOtherParty: Date;
   isVisibleOtherIdentity: boolean = false;
 
-
-  constructor(public oidc : OidcSecurityService,
-              private eventService: PublicEventsService,
-              private _formBuilder: FormBuilder, private http: HttpClient,
-              @Inject(AccountService) private accountService,
-              @Inject(LookupService) private lookupService,
-              @Inject(LoggerService) private logger,
-              @Inject(Router) private router,
-              public dialog: MatDialog,
-              private datePipe: DatePipe) {}
+  constructor(
+    public oidc: OidcSecurityService,
+    private eventService: PublicEventsService,
+    private _formBuilder: FormBuilder,
+    private http: HttpClient,
+    @Inject(AccountService) private accountService,
+    @Inject(LookupService) private lookupService,
+    @Inject(LoggerService) private logger,
+    @Inject(Router) private router,
+    public dialog: MatDialog,
+    private datePipe: DatePipe,
+  ) {}
 
   ngOnInit() {
-
-    this.provinces = [{id: '123', value: 'British Columbia'}];
-    this.identities = [{id: '123', value: 'Native'}];
-    this.genders =  [{id: '123', value: 'Male'}];
-    this.courtLocations =  [{id: '123', value: 'Victoria Court'}];
-    this.referrals = [{id: '123', value: 'BCFMA'}];
+    this.provinces = [{ id: '123', value: 'British Columbia' }];
+    this.identities = [{ id: '123', value: 'Native' }];
+    this.genders = [{ id: '123', value: 'Male' }];
+    this.courtLocations = [{ id: '123', value: 'Victoria Court' }];
+    this.referrals = [{ id: '123', value: 'BCFMA' }];
 
     this.errorMessage = 'Error: Field is required. ';
     this.errorMailMessage = 'Email address without @ or domain name. ';
     this.errorIncomeMessage = 'Field should have numerical values. ';
-    this.errorDateMessage = 'Date cannot be in future.'
+    this.errorDateMessage = 'Date cannot be in future.';
     this.errorMaxMessage = 'You can only enter up to 3000 characters.';
 
-    this.errorMaxOtherIdentityMessage = 'You can only enter up to 100 characters.';
-
+    this.errorMaxOtherIdentityMessage =
+      'You can only enter up to 100 characters.';
 
     this.tooltips = [
       'A child over the age of majority (19 in B.C.) who is still dependent on their parents. For example, due to illness, disability or pursuit of post secondary education.',
       'On a Court Order: look for the date the order was made or granted. Often this can be found on the first page below the names of the parties. On a Written Agreement: look for the date the agreement was stamped when it was filed by the court. Often this can be found at the top of the first page.',
       'The person paying child support.',
       'These are additional amounts to be paid over and above the base child support amount. Some examples of these expenses (often referred to as Section 7 expenses) include childcare, medical or dental premiums, healthcare costs.',
-      'Income Assistance (IA) is the welfare program in BC. It provides financial support for low income or no income individuals. '+
-      'The Ministry of Social Development and Poverty Reduction has three income assistance programs: '+
-      'Income Assistance (IA), '+
-      'Persons with Persistent Multiple Barriers (PPMB), '+
-      'Persons with Disabilities (PWD).',
-    ]
+      'Income Assistance (IA) is the welfare program in BC. It provides financial support for low income or no income individuals. ' +
+        'The Ministry of Social Development and Poverty Reduction has three income assistance programs: ' +
+        'Income Assistance (IA), ' +
+        'Persons with Persistent Multiple Barriers (PPMB), ' +
+        'Persons with Disabilities (PWD).',
+    ];
 
     this.getReferrals();
     this.getIdentities();
@@ -145,10 +134,9 @@ export class ChildApplicationQuestionComponent implements OnInit {
     this.getCourtLevels();
     this.getCourtLocations();
 
-
     this.firstFormGroup = this._formBuilder.group({
       firstControl: ['', Validators.required],
-      secondControl: ['', Validators.required]
+      secondControl: ['', Validators.required],
     });
     this.secondFormGroup = this._formBuilder.group({
       firstName: ['', Validators.required],
@@ -167,7 +155,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
       workNumber: ['', Validators.required],
       gender: [''],
       identity: [''],
-      otherIdentity: ['', Validators.maxLength(100)]
+      otherIdentity: ['', Validators.maxLength(100)],
     });
 
     this.thirdFormGroup = this._formBuilder.group({
@@ -185,8 +173,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
       cellPhoneNumber: [''],
       workPhoneNumber: [''],
       email: ['', Validators.email],
-      gender: ['']
-
+      gender: [''],
     });
 
     this.fourthFormGroup1 = this._formBuilder.group({
@@ -196,10 +183,9 @@ export class ChildApplicationQuestionComponent implements OnInit {
           lastName: ['', Validators.required],
           birthdate: ['', Validators.required],
           childDependency: [],
-          middleName: []
-        })
-
-      ])
+          middleName: [],
+        }),
+      ]),
     });
 
     this.fifthFormGroup = this._formBuilder.group({
@@ -216,7 +202,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
 
     this.sixFormGroup = this._formBuilder.group({
       childSafety: [''],
-      childSafetyDescription: ['',Validators.maxLength(3000)],
+      childSafetyDescription: ['', Validators.maxLength(3000)],
       contactMethod: [''],
       enrollFMEP: [''],
       FMEPinput: [''],
@@ -242,18 +228,13 @@ export class ChildApplicationQuestionComponent implements OnInit {
     //this.setFormDataFromLocal();
   }
 
-  onIdentityChange(event: MatSelectChange)
-  {
-
-    let listIdentity = new List<LookupValue>(this.identities);
-    let identity: LookupValue = listIdentity.firstOrDefault(x=>x.id == event.value);
+  onIdentityChange(event: MatSelectChange) {
+    let identity: LookupValue =
+      this.identities.find((x) => x.id == event.value) ?? null;
     //this.logger.info('seleceted identity: ', identity.value);
-    if (identity.value === 'Other')
-    {
+    if (identity.value === 'Other') {
       this.isVisibleOtherIdentity = true;
-    }
-    else
-    {
+    } else {
       this.isVisibleOtherIdentity = false;
     }
     //this.logger.info('isVisibleOtherIdentity: ', this.isVisibleOtherIdentity);
@@ -269,115 +250,109 @@ export class ChildApplicationQuestionComponent implements OnInit {
     this.birthOfDateOtherParty = null;
   }
 
-
-
-  setFormDataFromLocal(){
-  if (localStorage.getItem('formData')){
+  setFormDataFromLocal() {
+    if (localStorage.getItem('formData')) {
       let data = localStorage.getItem('formData');
       data = JSON.parse(data);
-      if (data['firstStep']){
+      if (data['firstStep']) {
         this.firstFormGroup.patchValue(data['firstStep']);
       }
-      if (data['secondFormGroup']){
+      if (data['secondFormGroup']) {
         this.secondFormGroup.patchValue(data['secondFormGroup']);
       }
-      if (data['thirdFormGroup']){
+      if (data['thirdFormGroup']) {
         this.thirdFormGroup.patchValue(data['thirdFormGroup']);
       }
-      if (data['fourthFormGroup']){
+      if (data['fourthFormGroup']) {
         this.fourthFormGroup.patchValue(data['fourthFormGroup']);
       }
-      if (data['fifthFormGroup']){
+      if (data['fifthFormGroup']) {
         this.fifthFormGroup.patchValue(data['fifthFormGroup']);
       }
-      if (data['sixFormGroup']){
+      if (data['sixFormGroup']) {
         this.sixFormGroup.patchValue(data['sixFormGroup']);
       }
-      if (data['seventhFormGroup']){
+      if (data['seventhFormGroup']) {
         this.seventhFormGroup.patchValue(data['seventhFormGroup']);
       }
-      if (data['eFormGroup']){
+      if (data['eFormGroup']) {
         this.eFormGroup.patchValue(data['eFormGroup']);
       }
-      if (data['nineFormGroup']){
+      if (data['nineFormGroup']) {
         this.nineFormGroup.patchValue(data['nineFormGroup']);
       }
+    }
   }
 
-}
-
-onDateChange(event: MatDatepickerInputEvent<Date>, i: number): void {
-  //var childYears = this.diff_years(event.value, new Date());
-  var childYears = this.ageFromDateOfBirthday(event.value);
-  //this.logger.info(`childYears = ${childYears}`);
-  this.isHiddens[i] = childYears >= 19 ? true : false;
-  //this.logger.warn(`childYears = ${childYears}, isHiddens[i] = ${this.isHiddens[i]}`);
-}
-
-diff_years(dt2, dt1)
- {
-   var diff = (dt2.getTime() - dt1.getTime()) / 1000;
-   diff /= (60 * 60 * 24);
-   return Math.abs(Math.round(diff/365.25));
- }
-
- ageFromDateOfBirthday(dateOfBirth: any): number {
-  const today = new Date();
-  //this.logger.warn(`today = ${today}`);
-  const birthDate = new Date(dateOfBirth);
-  //this.logger.warn(`birthDate = ${birthDate}`);
-  let age = today.getFullYear() - birthDate.getFullYear();
-  //this.logger.warn(`age = ${age}`);
-  const m = today.getMonth() - birthDate.getMonth();
-  //this.logger.warn(`m = ${m}`);
-
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
+  onDateChange(event: MatDatepickerInputEvent<Date>, i: number): void {
+    //var childYears = this.diff_years(event.value, new Date());
+    var childYears = this.ageFromDateOfBirthday(event.value);
+    //this.logger.info(`childYears = ${childYears}`);
+    this.isHiddens[i] = childYears >= 19 ? true : false;
+    //this.logger.warn(`childYears = ${childYears}, isHiddens[i] = ${this.isHiddens[i]}`);
   }
-  //this.logger.warn(`age = ${age}`);
 
-  return age;
-}
+  diff_years(dt2, dt1) {
+    var diff = (dt2.getTime() - dt1.getTime()) / 1000;
+    diff /= 60 * 60 * 24;
+    return Math.abs(Math.round(diff / 365.25));
+  }
 
+  ageFromDateOfBirthday(dateOfBirth: any): number {
+    const today = new Date();
+    //this.logger.warn(`today = ${today}`);
+    const birthDate = new Date(dateOfBirth);
+    //this.logger.warn(`birthDate = ${birthDate}`);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    //this.logger.warn(`age = ${age}`);
+    const m = today.getMonth() - birthDate.getMonth();
+    //this.logger.warn(`m = ${m}`);
 
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    //this.logger.warn(`age = ${age}`);
 
-forSubmitBtn(event){
-  //this.logger.info(`event: ${event}`);
-  //this.logger.info(`event.checked: ${event.checked}`);
-  this.isDisabledSubmit = !event.checked;
-}
+    return age;
+  }
 
-openDialog(inData) {
-  const dialogRef = this.dialog.open(ConfirmDialogComponent,{
-    width: '550px',
-    data: inData
-  });
+  forSubmitBtn(event) {
+    //this.logger.info(`event: ${event}`);
+    //this.logger.info(`event.checked: ${event.checked}`);
+    this.isDisabledSubmit = !event.checked;
+  }
 
-  dialogRef.afterClosed().subscribe(result => {
-    console.log(`Dialog result: ${result}`);
-  });
-}
+  openDialog(inData) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '550px',
+      data: inData,
+    });
 
-editPage(stepper, index){
-  this.isEditable = true;
-  stepper.selectedIndex = index;
-}
+    dialogRef.afterClosed().subscribe((result) => {
+      console.log(`Dialog result: ${result}`);
+    });
+  }
+
+  editPage(stepper, index) {
+    this.isEditable = true;
+    stepper.selectedIndex = index;
+  }
   getIdentities() {
     this.accountService.apiAccountIdentitiesGet().subscribe({
-        next: (data) => {
-          this.identities = data;
-          //this.logger.info('this.identities',this.identities);
-        },
-        error: (e) => {
-          //this.logger.error('error is getIdentities', e);
-          this.data = {
-            title: 'Error',
-            content: e.message,
-            weight: 'normal',
-            color: 'red'
-           };
-           this.openModalDialog();
-        },
+      next: (data) => {
+        this.identities = data;
+        //this.logger.info('this.identities',this.identities);
+      },
+      error: (e) => {
+        //this.logger.error('error is getIdentities', e);
+        this.data = {
+          title: 'Error',
+          content: e.message,
+          weight: 'normal',
+          color: 'red',
+        };
+        this.openModalDialog();
+      },
     });
   }
 
@@ -389,15 +364,15 @@ editPage(stepper, index){
       },
       error: (e) => {
         //this.logger.error('error in getProvinces', e);
-          this.data = {
-            title: 'Error',
-            content: e.message,
-            weight: 'normal',
-            color: 'red'
-           };
-           this.openModalDialog();
+        this.data = {
+          title: 'Error',
+          content: e.message,
+          weight: 'normal',
+          color: 'red',
+        };
+        this.openModalDialog();
       },
-    })
+    });
   }
 
   getGenders() {
@@ -412,51 +387,50 @@ editPage(stepper, index){
           title: 'Error',
           content: e.message,
           weight: 'normal',
-          color: 'red'
-         };
-         this.openModalDialog();
+          color: 'red',
+        };
+        this.openModalDialog();
       },
-    })
+    });
   }
 
   getCourtLocations() {
-   this.lookupService.apiLookupCourtlocationsGet().subscribe({
-        next: (data) => {
-          this.courtLocations = data;
-          //this.logger.info('this.courtLocations',this.courtLocations);
-        },
-        error: (e) => {
-          //this.logger.error('error in getCourtLocations', e);
-          this.data = {
-            title: 'Error',
-            content: e.message,
-            weight: 'normal',
-            color: 'red'
-          };
-          this.openModalDialog();
-        },
-      })
+    this.lookupService.apiLookupCourtlocationsGet().subscribe({
+      next: (data) => {
+        this.courtLocations = data;
+        //this.logger.info('this.courtLocations',this.courtLocations);
+      },
+      error: (e) => {
+        //this.logger.error('error in getCourtLocations', e);
+        this.data = {
+          title: 'Error',
+          content: e.message,
+          weight: 'normal',
+          color: 'red',
+        };
+        this.openModalDialog();
+      },
+    });
   }
 
   getCourtLevels() {
-     this.lookupService.apiLookupCourtlevelsGet().subscribe({
-        next: (data) => {
-          this.courtLevels = data;
-          //this.logger.info('this.courtLevels',this.courtLevels);
-        },
-        error: (e) => {
-          //this.logger.error('error in getCourtLevels', e);
-          this.data = {
-            title: 'Error',
-            content: e.message,
-            weight: 'normal',
-            color: 'red'
-           };
-           this.openModalDialog();
-        },
-      })
+    this.lookupService.apiLookupCourtlevelsGet().subscribe({
+      next: (data) => {
+        this.courtLevels = data;
+        //this.logger.info('this.courtLevels',this.courtLevels);
+      },
+      error: (e) => {
+        //this.logger.error('error in getCourtLevels', e);
+        this.data = {
+          title: 'Error',
+          content: e.message,
+          weight: 'normal',
+          color: 'red',
+        };
+        this.openModalDialog();
+      },
+    });
   }
-
 
   getReferrals() {
     this.accountService.apiAccountReferralsGet().subscribe({
@@ -466,18 +440,18 @@ editPage(stepper, index){
       },
       error: (e) => {
         //this.logger.error('error in getReferrals', e);
-          this.data = {
-            title: 'Error',
-            content: e.message,
-            weight: 'normal',
-            color: 'red'
-           };
-           this.openModalDialog();
+        this.data = {
+          title: 'Error',
+          content: e.message,
+          weight: 'normal',
+          color: 'red',
+        };
+        this.openModalDialog();
       },
-    })
+    });
   }
 
-  getPreferredcontactmethods(){
+  getPreferredcontactmethods() {
     this.accountService.apiAccountPreferredcontactmethodsGet().subscribe({
       next: (data) => {
         this.preferredContactMethods = data;
@@ -485,19 +459,18 @@ editPage(stepper, index){
       },
       error: (e) => {
         //this.logger.error('error in getPreferredcontactmethods', e);
-          this.data = {
-            title: 'Error',
-            content: e.message,
-            weight: 'normal',
-            color: 'red'
-           };
-           this.openModalDialog();
+        this.data = {
+          title: 'Error',
+          content: e.message,
+          weight: 'normal',
+          color: 'red',
+        };
+        this.openModalDialog();
       },
-    })
+    });
   }
 
-
-  callAntherchild(){
+  callAntherchild() {
     const usersArray = this.fourthFormGroup1.controls.users as FormArray;
     const arraylen = usersArray.length;
 
@@ -516,20 +489,15 @@ editPage(stepper, index){
     this.isChildDelete = false;
   }
 
-  deletechild1(){
+  deletechild1() {
     const arraylen = this.fourthFormGroup1.get('users')['controls'].length;
-    ( <FormArray> this.fourthFormGroup1.controls.users).removeAt(arraylen-1);
-    if (arraylen === 1)
-    {
+    (<FormArray>this.fourthFormGroup1.controls.users).removeAt(arraylen - 1);
+    if (arraylen === 1) {
       this.isChildDelete = true;
-    }
-    else
-    {
+    } else {
       this.isChildDelete = false;
     }
   }
-
-
 
   saveLater() {
     this.isDisabledSubmit = true;
@@ -548,7 +516,7 @@ editPage(stepper, index){
     this.prepareData();
     this.isDisabledSubmit = false;
   }
-  save(){
+  save() {
     this.prepareData();
     //localStorage.getsetItemItem('formData', '');
   }
@@ -560,7 +528,7 @@ editPage(stepper, index){
       data: '',
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       //this.logger.info(`Dialog result: ${result}`);
     });
   }
@@ -572,7 +540,7 @@ editPage(stepper, index){
       data: '',
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       //this.logger.info(`Dialog result: ${result}`);
     });
   }
@@ -583,76 +551,64 @@ editPage(stepper, index){
       data: this.data,
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       //this.logger.info(`Dialog result: ${result}`);
     });
   }
 
-  getProvinceById(id)
-  {
-    let listProvince = new List<LookupValue>(this.provinces);
-    let province: LookupValue = listProvince.firstOrDefault(x=>x.id == id);
-    return province != null  ? province.value : '-'
+  getProvinceById(id) {
+    let province: LookupValue = this.provinces.find((x) => x.id == id) ?? null;
+    return province != null ? province.value : '-';
   }
 
-  getGenderById(id)
-  {
-    let listGender = new List<LookupValue>(this.genders);
-    let gender: LookupValue = listGender.firstOrDefault(x=>x.id == id);
-    return gender != null  ? gender.value : '-';
+  getGenderById(id) {
+    let gender: LookupValue = this.genders.find((x) => x.id == id) ?? null;
+    return gender != null ? gender.value : '-';
   }
 
-  getIdentityById(id)
-  {
-    let listIdentity = new List<LookupValue>(this.identities);
-    let identity: LookupValue = listIdentity.firstOrDefault(x=>x.id == id);
+  getIdentityById(id) {
+    let identity: LookupValue = this.identities.find((x) => x.id == id) ?? null;
 
-    if (identity.value === 'Other')
-    {
-      return 'Other: ' + this.secondFormGroup.value.otherIdentity
+    if (identity.value === 'Other') {
+      return 'Other: ' + this.secondFormGroup.value.otherIdentity;
     }
 
-    return identity != null  ? identity.value : '-';
+    return identity != null ? identity.value : '-';
   }
 
-  getReferralById(id)
-  {
-    let listReferral = new List<LookupValue>(this.referrals);
-    let referral: LookupValue = listReferral.firstOrDefault(x=>x.id == id);
-    return referral != null  ? referral.value : '-';
+  getReferralById(id) {
+    let referral: LookupValue = this.referrals.find((x) => x.id == id) ?? null;
+    return referral != null ? referral.value : '-';
   }
 
-  getCourtLocationById(id)
-  {
-    let listCourtLocation = new List<LookupValue>(this.courtLocations);
-    let courtLocation: LookupValue = listCourtLocation.firstOrDefault(x=>x.id == id);
-    return courtLocation != null  ? courtLocation.value : '-';
+  getCourtLocationById(id) {
+    let courtLocation: LookupValue =
+      this.courtLocations.find((x) => x.id == id) ?? null;
+    return courtLocation != null ? courtLocation.value : '-';
   }
 
   transformDate(date) {
     return this.datePipe.transform(date, 'yyyy-MM-dd');
   }
 
-  findId(value){
-    if (value == 'Yes'){
+  findId(value) {
+    if (value == 'Yes') {
       return this._yes;
+    } else if (value == 'No') {
+      return this._no;
     }
-    else
-      if (value == 'No'){
-        return this._no;
-      }
     return this._iDontKnow;
   }
 
-  getCourtTyleFile(value){
-    const courtTypeFileId = value == 'Order' ?  this._courtOrder : this._writtenAgreement;
-    const inCourtFileType: LookupValue = {id: courtTypeFileId, value: value};
+  getCourtTyleFile(value) {
+    const courtTypeFileId =
+      value == 'Order' ? this._courtOrder : this._writtenAgreement;
+    const inCourtFileType: LookupValue = { id: courtTypeFileId, value: value };
     //this.logger.warn(`inCourtFileType: ${inCourtFileType}`);
     return inCourtFileType;
   }
 
-  prepareData(){
-
+  prepareData() {
     //---------
     /*const users = this.fourthFormGroup1.value.users;
     let childs: Array<Child> = new Array<Child>();
@@ -673,163 +629,163 @@ editPage(stepper, index){
     const users = this.fourthFormGroup1.value.users;
     this.logger.info('users: ', users);
     let childs: Array<Child> = new Array<Child>();
-    for(var i = 0; i < users.length;i++) {
+    for (var i = 0; i < users.length; i++) {
       let child: Child = {
         firstName: users[i].firstName,
         middleName: users[i].middleName,
         lastName: users[i].lastName,
         dateOfBirth: this.transformDate(users[i].birthdate),
-        childIsDependent: users[i].childDependency
+        childIsDependent: users[i].childDependency,
       };
-      childs.push(child)
+      childs.push(child);
     }
 
-      // --- populate partyRole
-      const roleData = this.firstFormGroup.value;
-      let partyRole: PartyRole = PartyRole.Unknown;
-      let partyEnrolled = '';
+    // --- populate partyRole
+    const roleData = this.firstFormGroup.value;
+    let partyRole: PartyRole = PartyRole.Unknown;
+    let partyEnrolled = '';
 
-      if (roleData.firstControl == 'I am the recipient; I currently receive child support')
-      {
-        partyRole = PartyRole.Recipient;
-        partyEnrolled = 'Recipient';
-      }
-      else
-      {
-        partyRole = PartyRole.Payor;
-        partyEnrolled = 'Payor';
-      }
+    if (
+      roleData.firstControl ==
+      'I am the recipient; I currently receive child support'
+    ) {
+      partyRole = PartyRole.Recipient;
+      partyEnrolled = 'Recipient';
+    } else {
+      partyRole = PartyRole.Payor;
+      partyEnrolled = 'Payor';
+    }
 
-      // --- populate party
-      const partyData = this.secondFormGroup.value;
-      const file1Data = this.fifthFormGroup.value;
-      const file2Data = this.sixFormGroup.value;
+    // --- populate party
+    const partyData = this.secondFormGroup.value;
+    const file1Data = this.fifthFormGroup.value;
+    const file2Data = this.sixFormGroup.value;
 
-      //let LookupValue
-      let listGender = new List<LookupValue>(this.genders);
-      let inGender: LookupValue = listGender.firstOrDefault(x=>x.id == partyData.gender);
+    //let LookupValue
+    let inGender: LookupValue =
+      this.genders.find((x) => x.id == partyData.gender) ?? null;
+    let inProvince: LookupValue =
+      this.provinces.find((x) => x.id == partyData.province) ?? null;
+    let inIdentityParty: LookupValue =
+      this.identities.find((x) => x.id == partyData.identity) ?? null;
+    let inReferral: LookupValue =
+      this.referrals.find((x) => x.id == file2Data.referral) ?? null;
+    let inPreferredContactMethod: LookupValue =
+      this.preferredContactMethods.find(
+        (x) => x.value == file2Data.contactMethod,
+      ) ?? null;
 
-      let listProvince = new List<LookupValue>(this.provinces);
-      let inProvince: LookupValue = listProvince.firstOrDefault(x=>x.id == partyData.province);
+    let inParty: Party = {
+      partyId: '00000000-0000-0000-0000-000000000000',
+      firstName: partyData.firstName,
+      middleName: partyData.givenNames,
+      lastName: partyData.lastName,
+      preferredName: partyData.PreferredName,
+      dateOfBirth: this.transformDate(partyData.birthdate),
+      gender: inGender,
+      addressStreet1: partyData.address1,
+      addressStreet2: partyData.saddress,
+      city: partyData.city,
+      province: inProvince,
+      postalCode: partyData.postalCode,
+      homePhone: partyData.phoneNumber,
+      workPhone: partyData.workNumber,
+      cellPhone: partyData.cellNumber,
+      email: partyData.email,
+      optOutElectronicDocuments: null, // ??? may need to remove?
+      identity: inIdentityParty,
+      referral: inReferral,
+      preferredContactMethod: inPreferredContactMethod,
+      incomeAssistance: this.findId(file2Data.incomeAssistance),
+      otherIdentity: partyData.otherIdentity,
+    };
 
-      let listIdentityParty = new List<LookupValue>(this.identities);
-      let inIdentityParty: LookupValue = listIdentityParty.firstOrDefault(x=>x.id == partyData.identity);
+    // --- populate other party
+    const otherPartyData = this.thirdFormGroup.value;
+    let inOtherGender: LookupValue =
+      this.genders.find((x) => x.id == otherPartyData.gender) ?? null;
+    let inOtherProvince: LookupValue =
+      this.provinces.find((x) => x.id == otherPartyData.province) ?? null;
 
-      let listReferral = new List<LookupValue>(this.referrals);
-      let inReferral: LookupValue = listReferral.firstOrDefault(x=>x.id == file2Data.referral);
+    let inOtherParty: Party = {
+      partyId: '00000000-0000-0000-0000-000000000000',
+      firstName: otherPartyData.firstName,
+      middleName: otherPartyData.givenNames,
+      lastName: otherPartyData.lastName,
+      preferredName: otherPartyData.pname,
+      dateOfBirth: this.transformDate(otherPartyData.birthdate),
+      gender: inOtherGender,
+      addressStreet1: otherPartyData.saddress1,
+      addressStreet2: otherPartyData.saddress2,
+      city: otherPartyData.city,
+      province: inOtherProvince,
+      postalCode: otherPartyData.postalCode,
+      homePhone: otherPartyData.homePhoneNumber,
+      workPhone: otherPartyData.workPhoneNumber,
+      cellPhone: otherPartyData.cellPhoneNumber,
+      email: otherPartyData.email,
+      optOutElectronicDocuments: null,
+      identity: null,
+      referral: null,
+      preferredContactMethod: null,
+      referenceNumber: null,
+    };
 
-      let list = new List<LookupValue>(this.preferredContactMethods);
-      let inPreferredContactMethod: LookupValue = list.firstOrDefault(x=>x.value == file2Data.contactMethod);
+    // --- populate file
+    let inCourtFileType: LookupValue = this.getCourtTyleFile(
+      roleData.secondControl,
+    );
 
-      let inParty: Party = {
-          partyId: '00000000-0000-0000-0000-000000000000',
-          firstName: partyData.firstName,
-          middleName: partyData.givenNames,
-          lastName: partyData.lastName,
-          preferredName: partyData.PreferredName,
-          dateOfBirth: this.transformDate(partyData.birthdate),
-          gender: inGender,
-          addressStreet1: partyData.address1,
-          addressStreet2: partyData.saddress,
-          city: partyData.city,
-          province: inProvince,
-          postalCode: partyData.postalCode,
-          homePhone: partyData.phoneNumber,
-          workPhone: partyData.workNumber,
-          cellPhone: partyData.cellNumber,
-          email: partyData.email,
-          optOutElectronicDocuments: null,   // ??? may need to remove?
-          identity: inIdentityParty,
-          referral: inReferral,
-          preferredContactMethod: inPreferredContactMethod,
-          incomeAssistance: this.findId(file2Data.incomeAssistance),
-          otherIdentity: partyData.otherIdentity
-      }
+    let inBcCourtLocation: LookupValue =
+      this.courtLocations.find((x) => x.id == file1Data.courtLocation) ?? null;
 
-      // --- populate other party
-      const otherPartyData = this.thirdFormGroup.value;
-      let inOtherGender: LookupValue = listGender.firstOrDefault(x=>x.id == otherPartyData.gender);
-      let inOtherProvince: LookupValue = listProvince.firstOrDefault(x=>x.id == otherPartyData.province);
+    //let inBcCourtLevel: CourtLookupValue = this.courtLevels[0];
+    let inBcCourtLevel: LookupValue =
+      this.courtLevels.find((x) => x.value == 'Provincial') ?? null;
 
-      let inOtherParty: Party = {
-            partyId: "00000000-0000-0000-0000-000000000000",
-            firstName: otherPartyData.firstName,
-            middleName: otherPartyData.givenNames,
-            lastName: otherPartyData.lastName,
-            preferredName: otherPartyData.pname,
-            dateOfBirth: this.transformDate(otherPartyData.birthdate),
-            gender: inOtherGender,
-            addressStreet1: otherPartyData.saddress1,
-            addressStreet2: otherPartyData.saddress2,
-            city: otherPartyData.city,
-            province: inOtherProvince,
-            postalCode: otherPartyData.postalCode,
-            homePhone: otherPartyData.homePhoneNumber,
-            workPhone: otherPartyData.workPhoneNumber,
-            cellPhone: otherPartyData.cellPhoneNumber,
-            email: otherPartyData.email,
-            optOutElectronicDocuments: null,
-            identity: null,
-            referral: null,
-            preferredContactMethod: null,
-            referenceNumber: null
-      }
+    let inFile: any = {
+      status: FileStatus.Unknown,
+      usersRole: partyRole,
+      fileId: '0',
+      fileNumber: null,
+      partyEnrolled: partyEnrolled,
+      courtFileType: inCourtFileType,
+      bcCourtLevel: inBcCourtLevel,
+      bcCourtLocation: inBcCourtLocation,
+      dateOfOrderOrWA: this.transformDate(file1Data.orderDate),
+      incomeOnOrder: file1Data.payorIncome,
+      section7Expenses: file1Data.isSpecifiedIncome,
+      safetyAlertRecipient: null,
+      recipientSafetyConcernDescription: null,
+      safetyAlertPayor: null,
+      payorSafetyConcernDescription: null,
+      isFMEPFileActive: file2Data.enrollFMEP,
+      fmepFileNumber: file2Data.FMEPinput,
+      recalculationOrderByCourt: file1Data.recalculationOrdered,
+      otherParty: inOtherParty,
+      children: childs,
+    };
 
-      // --- populate file
-      let inCourtFileType: LookupValue = this.getCourtTyleFile(roleData.secondControl);
+    // --- populate
+    var newFileRequest: NewFileRequest = {
+      user: inParty,
+      file: inFile,
+    };
 
-      let listBcCourtLocation = new List<LookupValue>(this.courtLocations);
-      let inBcCourtLocation: LookupValue = listBcCourtLocation.firstOrDefault(x=>x.id == file1Data.courtLocation);
+    if (partyEnrolled == 'Recipient') {
+      newFileRequest.file.safetyAlertRecipient = file2Data.childSafety;
+      newFileRequest.file.recipientSafetyConcernDescription =
+        file2Data.childSafetyDescription;
+    } else {
+      newFileRequest.file.safetyAlertPayor = file2Data.childSafety;
+      newFileRequest.file.payorSafetyConcernDescription =
+        file2Data.childSafetyDescription;
+    }
 
-      //let inBcCourtLevel: CourtLookupValue = this.courtLevels[0];
-      let listBcCourtLevel = new List<LookupValue>(this.courtLevels);
-      let inBcCourtLevel: LookupValue = listBcCourtLevel.firstOrDefault(x=>x.value == 'Provincial');
-
-      let inFile:any = {
-          status: FileStatus.Unknown,
-          usersRole: partyRole,
-          fileId: '0',
-          fileNumber: null,
-          partyEnrolled: partyEnrolled,
-          courtFileType: inCourtFileType,
-          bcCourtLevel: inBcCourtLevel,
-          bcCourtLocation: inBcCourtLocation,
-          dateOfOrderOrWA: this.transformDate(file1Data.orderDate),
-          incomeOnOrder: file1Data.payorIncome,
-          section7Expenses: file1Data.isSpecifiedIncome,
-          safetyAlertRecipient: null,
-          recipientSafetyConcernDescription: null,
-          safetyAlertPayor: null,
-          payorSafetyConcernDescription: null,
-          isFMEPFileActive: file2Data.enrollFMEP,
-          fmepFileNumber: file2Data.FMEPinput,
-          recalculationOrderByCourt: file1Data.recalculationOrdered,
-          otherParty: inOtherParty,
-          children: childs
-      }
-
-      // --- populate
-      var newFileRequest: NewFileRequest = {
-        user: inParty,
-        file: inFile,
-      }
-
-      if (partyEnrolled == 'Recipient')
-      {
-        newFileRequest.file.safetyAlertRecipient = file2Data.childSafety;
-        newFileRequest.file.recipientSafetyConcernDescription = file2Data.childSafetyDescription;
-      }
-      else
-      {
-        newFileRequest.file.safetyAlertPayor = file2Data.childSafety;
-        newFileRequest.file.payorSafetyConcernDescription = file2Data.childSafetyDescription;
-      }
-
-      //this.logger.info("newFileRequest:", newFileRequest);
+    //this.logger.info("newFileRequest:", newFileRequest);
 
     this.accountService.apiAccountCreatePost(newFileRequest).subscribe({
-      next: (outData:any) => {
-
+      next: (outData: any) => {
         var partyId = outData.partyId;
         var fileId = outData.fileId;
         var fileNumber = outData.fileNumber;
@@ -838,24 +794,25 @@ editPage(stepper, index){
         //this.logger.info("fileId", fileId);
         //this.logger.info("fileNumber", fileNumber);
 
-        let customOptions: DialogOptions = { data: {fileNumber: fileNumber}};
+        let customOptions: DialogOptions = { data: { fileNumber: fileNumber } };
         this.openDialog(customOptions);
-        this.router.navigate(['/communication'], { queryParams: { index: 1, fileNumber: fileNumber } });
-
+        this.router.navigate(['/communication'], {
+          queryParams: { index: 1, fileNumber: fileNumber },
+        });
       },
       error: (e) => {
-
         //this.logger.error('error in prepareData', e);
         this.data = {
           title: 'Error',
-          content: 'The information you entered is not valid. Please enter the information given to you by the Child Support Recalculation Service.',
+          content:
+            'The information you entered is not valid. Please enter the information given to you by the Child Support Recalculation Service.',
           content_normal: 'If you continue to have problems, contact us at ',
           content_link: '1-866-660-2684',
           weight: 'normal',
-          color: 'red'
-         };
-         this.openModalDialog();
+          color: 'red',
+        };
+        this.openModalDialog();
       },
-    })
+    });
   }
 }

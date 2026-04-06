@@ -103,7 +103,34 @@ namespace Csrs.Api.Services
                                 message.SsgCsrsmessagesubject
                             );
 
-                            attachments = await _documentService.GetAttachmentList(message.SsgCsrscommunicationmessageid, "ssg_csrscommunicationmessage", message.SsgCsrsmessagesubject, cancellationToken);
+                            // Check if this is a Task-based message (uploaded document)
+                            // Tasks have FamsOrigin = 451190000 (Portal) and contain file location in description
+                            if (message.FamsOrigin == 451190000 && !string.IsNullOrEmpty(message._ssgCsrsfileValue))
+                            {
+                                // Extract document type from description (format: "Party: ...\nDocument Type: Court_Application\n...")
+                                string documentType = message.SsgCsrsmessagesubject; // default to subject
+                                if (!string.IsNullOrEmpty(message.SsgCsrsmessage))
+                                {
+                                    var lines = message.SsgCsrsmessage.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                                    foreach (var line in lines)
+                                    {
+                                        if (line.StartsWith("Document Type:", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            documentType = line.Substring("Document Type:".Length).Trim();
+                                            _logger.LogDebug("IsSent={IsSent}, Extracted document type: {DocumentType}", isSent, documentType);
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                // For Task-based messages, fetch attachments from the File entity
+                                attachments = await _documentService.GetAttachmentList(message._ssgCsrsfileValue, "ssg_csrsfile", documentType, cancellationToken);
+                            }
+                            else
+                            {
+                                // For regular communication messages
+                                attachments = await _documentService.GetAttachmentList(message.SsgCsrscommunicationmessageid, "ssg_csrscommunicationmessage", message.SsgCsrsmessagesubject, cancellationToken);
+                            }
 
                             if (attachments == null || attachments.Count == 0)
                             {

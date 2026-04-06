@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
-		<UserSecretsId>bc342dfb-3e71-4df4-9786-5bd73599563b</UserSecretsId>
+		<UserSecretsId>c672e48c-4fbd-4422-9e9e-e36f5e014384</UserSecretsId>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
 		<DebugType>portable</DebugType>
 		<!-- Commit hash injection -->
