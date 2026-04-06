@@ -39,9 +39,25 @@ namespace Csrs.Api.Services
             // get the file.
             if (string.IsNullOrEmpty(serverRelativeUrl) || string.IsNullOrEmpty(documentType) || string.IsNullOrEmpty(entityId) || string.IsNullOrEmpty(entityName)) return new BadRequestResult();
 
-            var dynamicsFile = await CanAccessMessageDocument(entityId, _userService.GetBCeIDUserId(), cancellationToken);
+            // Check access based on entity type
+            bool hasAccess = false;
+            switch (entityName.ToLower())
+            {
+                case "ssg_csrsfile":
+                    var dynamicsFile = await CanAccessDocument(entityId, _userService.GetBCeIDUserId(), cancellationToken);
+                    hasAccess = dynamicsFile != null;
+                    break;
 
-            if (dynamicsFile is null) return new NotFoundResult();
+                case "ssg_csrscommunicationmessage":
+                    var dynamicsMessage = await CanAccessMessageDocument(entityId, _userService.GetBCeIDUserId(), cancellationToken);
+                    hasAccess = dynamicsMessage != null;
+                    break;
+
+                default:
+                    return new BadRequestResult();
+            }
+
+            if (!hasAccess) return new NotFoundResult();
 
             // call the web service
             var downloadRequest = new DownloadFileRequest
