@@ -1,38 +1,28 @@
-import { Component, OnInit } from '@angular/core';
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators,
-  FormArray,
-} from '@angular/forms';
-import { AccountService } from 'app/api/api/account.service';
+import { HttpClient } from '@angular/common/http';
+import { Component, Inject, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LoggerService } from '@core/services/logger.service';
-import { Inject} from '@angular/core';
-import { HttpClient, HttpStatusCode, HttpResponse, HttpHeaders, HttpEvent, HttpErrorResponse } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
-import { AppRoutes } from 'app/app.routes';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { List, Dictionary } from 'ts-generic-collections-linq';
+import { AccountService } from 'app/api/api/account.service';
+
 import { ModalDialogComponent } from 'app/components/modal-dialog/modal-dialog.component';
 import { AppConfigService } from 'app/services/app-config.service';
 import { LogInOutService } from 'app/services/log-in-out.service';
 
 // -- import data structure
 import {
-  NewFileRequest,
   CSRSAccount,
-  ModelFile,
   FileStatus,
-  AccountFileSummary
+  ModelFile,
+  NewFileRequest,
 } from 'app/api/model/models';
 @Component({
   selector: 'app-welcome-user',
   templateUrl: './welcome-user.component.html',
-  styleUrls: ['./welcome-user.component.scss']
+  styleUrls: ['./welcome-user.component.scss'],
 })
 export class WelcomeUserComponent implements OnInit {
-
   accountFormGroup: FormGroup;
   csrsAccount: CSRSAccount = null;
   data: any = null;
@@ -40,24 +30,25 @@ export class WelcomeUserComponent implements OnInit {
   errorMessage: any = '';
   public cscLink: string;
 
-
-  constructor(private _formBuilder: FormBuilder, private http: HttpClient,
-            private logInOutService: LogInOutService,
-              @Inject(AccountService) private accountService,
-              @Inject(LoggerService) private logger,
-              @Inject(Router) private router,
-              @Inject(AppConfigService) private appConfigService,
-              public dialog: MatDialog,
-              private route: ActivatedRoute) {}
+  constructor(
+    private _formBuilder: FormBuilder,
+    private http: HttpClient,
+    private logInOutService: LogInOutService,
+    @Inject(AccountService) private accountService,
+    @Inject(LoggerService) private logger,
+    @Inject(Router) private router,
+    @Inject(AppConfigService) private appConfigService,
+    public dialog: MatDialog,
+    private route: ActivatedRoute,
+  ) {}
 
   ngOnInit(): void {
-
     this.cscLink = this.appConfigService.appConfig.cscLink;
-    this.logger.info('cscLink :',this.cscLink);
+    this.logger.info('cscLink :', this.cscLink);
 
     this.accountFormGroup = this._formBuilder.group({
       fileNumber: ['', Validators.required],
-      referenceNumber: ['', Validators.required]
+      referenceNumber: ['', Validators.required],
     });
 
     this.errorMessage = 'Error: Field is required.';
@@ -66,25 +57,21 @@ export class WelcomeUserComponent implements OnInit {
 
     this.accountService.apiAccountGet('response', false).subscribe({
       next: (data: any) => {
-        this.logger.info("data:", data);
-        if (data && data.body != null)
-        {
-          var user   = data.body.user;
-          var files  = data.body.files;
+        this.logger.info('data:', data);
+        if (data && data.body != null) {
+          var user = data.body.user;
+          var files = data.body.files;
 
-          if (user != null)
-          {
-            this.logger.info("user:", user);
+          if (user != null) {
+            this.logger.info('user:', user);
             this.logInOutService.emitCurrentPortalUser(user);
           }
-          if (user != null && files != null && files.length > 0)
-          {
-            const listFiles = new List<ModelFile>(files); //this.logger.info("listFiles", listFiles);
-            const activeStatus:ModelFile = listFiles.firstOrDefault(x=>x.status == FileStatus.Active);
+          if (user != null && files != null && files.length > 0) {
+            const activeStatus: ModelFile =
+              files.find((x) => x.status == FileStatus.Active) ?? null;
             //this.logger.info("activeStatus", activeStatus);
 
-            if (activeStatus)
-            {
+            if (activeStatus) {
               //this.logger.info("redirect to Communication");
               this.router.routeReuseStrategy.shouldReuseRoute = () => false;
               this.router.navigate(['/communication']);
@@ -93,13 +80,11 @@ export class WelcomeUserComponent implements OnInit {
         }
       },
       error: (e) => {
-        if(e.error instanceof Error)
-        {
+        if (e.error instanceof Error) {
           //this.logger.info('e.error', e.error);
         }
-
       },
-    })
+    });
   }
 
   openModalDialog(): void {
@@ -108,43 +93,44 @@ export class WelcomeUserComponent implements OnInit {
       data: this.data,
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       this.logger.info(`Dialog result: ${result}`);
     });
   }
 
-  checkAccount(){
-
+  checkAccount() {
     this.data = {
       title: 'Error.',
-      content: 'The information you entered is not valid. Please enter the information given to you by the Child Support Recalculation Service. ',
+      content:
+        'The information you entered is not valid. Please enter the information given to you by the Child Support Recalculation Service. ',
       content_normal: 'If you continue to have problems, contact us at ',
       content_link: '1-866-660-2684.',
       weight: 'bold',
-      color: 'red'
+      color: 'red',
     };
 
     const accountData = this.accountFormGroup.value;
-    const csrsAccount: CSRSAccount = {fileNumber: accountData.fileNumber, referenceNumber: accountData.referenceNumber };
+    const csrsAccount: CSRSAccount = {
+      fileNumber: accountData.fileNumber,
+      referenceNumber: accountData.referenceNumber,
+    };
 
     this.accountService.apiAccountCheckcsrsaccountPost(csrsAccount).subscribe({
-      next: (outData:any) => {
+      next: (outData: any) => {
         var partyId = outData.partyId;
         var fileId = outData.fileId;
 
-        if (!partyId || !fileId)
-        {
+        if (!partyId || !fileId) {
           this.openModalDialog();
+        } else if (partyId && fileId) {
+          this.router.navigate(['/stepperform'], {
+            queryParams: { partyId: partyId, fileId: fileId },
+          });
         }
-        else
-          if (partyId && fileId)
-          {
-            this.router.navigate(['/stepperform'], { queryParams: { partyId: partyId, fileId: fileId} });
-          }
       },
       error: (e) => {
         this.openModalDialog();
       },
-    })
+    });
   }
 }

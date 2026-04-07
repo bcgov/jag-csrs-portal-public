@@ -247,7 +247,11 @@
                     </ng-container>
                     <ng-container matColumnDef="phone">
                       <th mat-header-cell *matHeaderCellDef> Actions </th>
-                      <td class="font_normal" mat-cell *matCellDef="let element"> <img src="/assets/View_icon.svg" /><a href="javascript:void(0)" (click)="ontableOutbox(element)">View</a> </td>
+                      <td class="font_normal" mat-cell *matCellDef="let element">                        
+                        <span>
+                          <img src="/assets/View_icon.svg" /><a href="javascript:void(0)" (click)="ontableOutbox(element)">View</a>
+                        </span>
+                      </td>
                     </ng-container>
                     <tr mat-header-row *matHeaderRowDef="displayedColumnsOutbox;"></tr>
                     <tr mat-row *matRowDef="let row; columns: displayedColumnsOutbox;"></tr>
@@ -280,7 +284,14 @@
                       <div matLine>
                         <div class="row" [ngStyle]="{ background: isEven ? 'aliceblue' : 'whitesmoke' }">
                           <div class="list_th col-3" style="margin-left:15px">Actions:</div>
-                          <div class="font_normal col-8"><img src="/assets/View_icon.svg" /><a target="blank" (click)="ontableOutbox(message)">View</a></div>
+                          <div class="font_normal col-8">
+                            <span *ngIf="message.attachment && message.documents?.length === 1">
+                              <img src="/assets/Download_icon.svg" /><a href="javascript:void(0)" (click)="downloadAttachment(message.fileId, message.documents[0].serverRelativeUrl, message.documents[0].documentType, message.documents[0].name, true)">Download</a>
+                            </span>
+                            <span *ngIf="!message.attachment || message.documents?.length !== 1">
+                              <img src="/assets/View_icon.svg" /><a href="javascript:void(0)" (click)="ontableOutbox(message)">View</a>
+                            </span>
+                          </div>
                         </div>
                       </div>
                       <mat-divider></mat-divider>
@@ -333,8 +344,7 @@
                     <td><strong>{{doc.name}}</strong></td>
                     <td>{{doc.size}}</td>
                     <td>
-                      <img style="padding-right: 0px;padding-left: 0px;" src="/assets/Download_icon.svg" /><a href="javascript:void(0)" (click)="downloadAttachment(selectedOutboxMessage.messageId, doc.serverRelativeUrl, doc.documentType, doc.name)">Download</a>
-                      <img style="padding-right: 0px;" src="/assets/View_icon.svg" /><a href="javascript:void(0)" (click)="ViewAttachment(selectedOutboxMessage.messageId, doc.serverRelativeUrl, doc.documentType, doc.name)">View</a>
+                      <img style="padding-right: 0px;padding-left: 0px;" src="/assets/Download_icon.svg" /><a href="javascript:void(0)" (click)="downloadAttachment(selectedOutboxMessage.fileId, doc.serverRelativeUrl, doc.documentType, doc.name, true)">Download</a>                      
                     </td>
                   </tr>
 

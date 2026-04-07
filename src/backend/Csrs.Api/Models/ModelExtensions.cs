@@ -24,7 +24,7 @@ namespace Csrs.Api.Models
                 LastName = dynamicsParty.SsgLastname,
                 PreferredName = dynamicsParty.SsgPreferredname,
                 Gender = await GetLookupValueAsync(dynamicsClient, "ssg_partygender", cache, dynamicsParty.SsgGender, cancellationToken),
-                DateOfBirth = dynamicsParty.SsgDateofbirth is not null ? dynamicsParty.SsgDateofbirth.Value.Date.ToString() : null, 
+                DateOfBirth = dynamicsParty.SsgDateofbirth is not null ? dynamicsParty.SsgDateofbirth.Value.Date.ToString() : null,
                 AddressStreet1 = dynamicsParty.SsgStreet1,
                 AddressStreet2 = dynamicsParty.SsgStreet2,
                 City = dynamicsParty.SsgCity,
@@ -42,7 +42,7 @@ namespace Csrs.Api.Models
             };
             return party;
         }
-    
+
         public static MicrosoftDynamicsCRMssgCsrsparty ToDynamicsModel(this Party party)
         {
             MicrosoftDynamicsCRMssgCsrsparty dynamicsParty = new MicrosoftDynamicsCRMssgCsrsparty
@@ -121,8 +121,8 @@ namespace Csrs.Api.Models
             return value switch
             {
                 "Yes" => true,
-                "No"  => false,
-                _     => null,
+                "No" => false,
+                _ => null,
             };
         }
 
@@ -156,10 +156,10 @@ namespace Csrs.Api.Models
                 //SsgRegistrationdate = ConvertToDTOffset(file.), ??
                 //SsgStyleofcauseapplicant = "Applicant", ??
                 //SsgStyleofcauserespondent = "Respondent", ??
-                    
+
             };
-            
-            return  dynamicsFile;
+
+            return dynamicsFile;
         }
 
         public static MicrosoftDynamicsCRMssgCsrsfile ToDynamicsModel(this CSRSAccountFile file, PartyRole role)
@@ -188,7 +188,7 @@ namespace Csrs.Api.Models
 
             return dynamicsFile;
         }
-        
+
         public static MicrosoftDynamicsCRMssgCsrschild ToDynamicsModel(this Child child)
         {
             MicrosoftDynamicsCRMssgCsrschild dynamicsChild = new MicrosoftDynamicsCRMssgCsrschild
@@ -224,12 +224,50 @@ namespace Csrs.Api.Models
             message.Documents = documents;
             message.RecievingParty = inMessage._ssgTopartyValue;
             message.SendingParty = inMessage._ssgFrompartyValue;
-            message.Content = inMessage.SsgCsrsmessage;
-            message.Subject = inMessage.SsgCsrsmessagesubject;
+
+            // For file upload tasks, use generic title and format content
+            bool isUploadedDocument = !string.IsNullOrEmpty(inMessage.SsgCsrsmessagesubject) &&
+                                      inMessage.SsgCsrsmessagesubject.Contains("Review Uploaded Document", StringComparison.OrdinalIgnoreCase);
+
+            if (isUploadedDocument)
+            {
+                message.Subject = "Uploaded Documents";
+                message.Content = ExtractDocumentTypeFromContent(inMessage.SsgCsrsmessage);
+            }
+            else
+            {
+                message.Subject = inMessage.SsgCsrsmessagesubject;
+                message.Content = inMessage.SsgCsrsmessage;
+            }
+
             message.Date = inMessage.SsgSentreceiveddate;
             message.IsRead = inMessage.SsgCsrsmessageread;
 
             return message;
+        }
+
+        private static string ExtractDocumentTypeFromContent(string? content)
+        {
+            if (string.IsNullOrEmpty(content))
+            {
+                return "Document Type: Unknown";
+            }
+
+            // Parse the content to extract document type
+            // Expected format: "Party: ...\nDocument Type: Court_Application\nDocument Location: ..."
+            var lines = content.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var line in lines)
+            {
+                if (line.Trim().StartsWith("Document Type:", StringComparison.OrdinalIgnoreCase))
+                {
+                    var documentTypeRaw = line.Substring(line.IndexOf(':') + 1).Trim();
+                    // Convert "Court_Application" to "Court Application"
+                    var documentTypeFormatted = documentTypeRaw.Replace('_', ' ');
+                    return $"Document Type: {documentTypeFormatted}";
+                }
+            }
+
+            return "Document Type: Unknown";
         }
 
         private static DateTimeOffset? ToDateTimeOffset(string? value)
@@ -276,7 +314,7 @@ namespace Csrs.Api.Models
 
             return null;
         }
-        
+
 
         private static bool? ToBoolean(string? value)
         {
@@ -330,7 +368,7 @@ namespace Csrs.Api.Models
             }
 
             // TODO: this needs caching!!!
-            var values =  await dynamicsClient.GetCourtLocationsAsync(cancellationToken);
+            var values = await dynamicsClient.GetCourtLocationsAsync(cancellationToken);
 
             if (values is null || values.Value is null)
             {
