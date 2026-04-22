@@ -173,7 +173,8 @@ namespace Csrs.Api.Services
                 _logger.LogInformation("Success");
                 result.Message = "Uploaded Successfully";
                 result.Uploaded = true;
-                result.TaskCreated = await createTask(entityId, partyId, dynamicsFile.SsgFilenumber, fileName, folderName, entityName, partyname, type, cancellationToken);
+                // Use the actual filename returned by SharePoint (may differ from fileName due to truncation)
+                result.TaskCreated = await createTask(entityId, partyId, dynamicsFile.SsgFilenumber, uploadResult.FileName, folderName, entityName, partyname, type, cancellationToken);
             }
             else
             {

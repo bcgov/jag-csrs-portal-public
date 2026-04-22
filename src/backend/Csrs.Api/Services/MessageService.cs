@@ -152,11 +152,41 @@ namespace Csrs.Api.Services
                                 // For Task-based messages, fetch the specific uploaded file from the File entity
                                 attachments = await _documentService.GetAttachmentList(message._ssgCsrsfileValue, "ssg_csrsfile", documentType, cancellationToken);
 
-                                // Filter to only the specific file that was uploaded for this task
+                                // Filter to only the specific file that was uploaded for this task.
+                                // SharePoint may have truncated the filename (stem prefix + original extension),
+                                // so we first try an exact match and fall back to a stem-prefix match.
                                 if (attachments != null && attachments.Count > 0)
                                 {
-                                    attachments = attachments.Where(a => a.Name != null && a.Name.Equals(specificFileName, StringComparison.OrdinalIgnoreCase)).ToList();
-                                    _logger.LogDebug("IsSent={IsSent}, Filtered attachments to specific file: {FileName}, Count: {Count}", isSent, specificFileName, attachments.Count);
+                                    var exactMatch = attachments
+                                        .Where(a => a.Name != null && a.Name.Equals(specificFileName, StringComparison.OrdinalIgnoreCase))
+                                        .ToList();
+
+                                    if (exactMatch.Count > 0)
+                                    {
+                                        attachments = exactMatch;
+                                        _logger.LogDebug("IsSent={IsSent}, Exact match for file: {FileName}, Count: {Count}", isSent, specificFileName, attachments.Count);
+                                    }
+                                    else
+                                    {
+                                        // SharePoint truncates by cutting the stem; the stored name's stem is always
+                                        // a prefix of the full (un-truncated) stem. Match on same extension + stem prefix.
+                                        string specificExt = Path.GetExtension(specificFileName);
+                                        string specificStem = Path.GetFileNameWithoutExtension(specificFileName);
+
+                                        var prefixMatch = attachments
+                                            .Where(a =>
+                                            {
+                                                if (a.Name == null) return false;
+                                                string aExt = Path.GetExtension(a.Name);
+                                                string aStem = Path.GetFileNameWithoutExtension(a.Name);
+                                                return string.Equals(aExt, specificExt, StringComparison.OrdinalIgnoreCase)
+                                                    && specificStem.StartsWith(aStem, StringComparison.OrdinalIgnoreCase);
+                                            })
+                                            .ToList();
+
+                                        attachments = prefixMatch;
+                                        _logger.LogDebug("IsSent={IsSent}, Prefix match for file: {FileName}, Count: {Count}", isSent, specificFileName, attachments.Count);
+                                    }
                                 }
                             }
                             else
