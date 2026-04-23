@@ -103,55 +103,90 @@ namespace Csrs.Api.Services
                                 message.SsgCsrsmessagesubject
                             );
 
-                            // Check if this is a Task-based message (uploaded document)
-                            // Tasks have FamsOrigin = 451190000 (Portal) and contain file location in description
-                            if (message.FamsOrigin == 451190000 && !string.IsNullOrEmpty(message._ssgCsrsfileValue))
+                            // Check if this is a Task-based message (uploaded document).
+                            // Tasks have FamsOrigin = 451190000 (Portal), a linked file, and a
+                            // "Document Location:" line in the message body.
+                            // Extract document type and filename from description 
+                            // Format: "Party: ...\nDocument Type: Court_Application\nDocument Location: entityName\folderName\fileName"
+                            string documentType = message.SsgCsrsmessagesubject; // default to subject
+                            string? specificFileName = null;
+                            bool isDocumentUploadTask = false;
+
+                            if (message.FamsOrigin == 451190000
+                                && !string.IsNullOrEmpty(message._ssgCsrsfileValue)
+                                && !string.IsNullOrEmpty(message.SsgCsrsmessage))
                             {
-                                // Extract document type and filename from description 
-                                // Format: "Party: ...\nDocument Type: Court_Application\nDocument Location: entityName\folderName\fileName"
-                                string documentType = message.SsgCsrsmessagesubject; // default to subject
-                                string? specificFileName = null;
-
-                                if (!string.IsNullOrEmpty(message.SsgCsrsmessage))
+                                var lines = message.SsgCsrsmessage.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+                                foreach (var line in lines)
                                 {
-                                    var lines = message.SsgCsrsmessage.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
-                                    foreach (var line in lines)
+                                    if (line.StartsWith("Document Type:", StringComparison.OrdinalIgnoreCase))
                                     {
-                                        if (line.StartsWith("Document Type:", StringComparison.OrdinalIgnoreCase))
+                                        documentType = line.Substring("Document Type:".Length).Trim();
+                                        _logger.LogDebug("IsSent={IsSent}, Extracted document type: {DocumentType}", isSent, documentType);
+                                    }
+                                    else if (line.StartsWith("Document Location:", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        // Extract filename from path (after last backslash)
+                                        string documentLocation = line.Substring("Document Location:".Length).Trim();
+                                        int lastBackslash = documentLocation.LastIndexOf('\\');
+                                        if (lastBackslash >= 0 && lastBackslash < documentLocation.Length - 1)
                                         {
-                                            documentType = line.Substring("Document Type:".Length).Trim();
-                                            _logger.LogDebug("IsSent={IsSent}, Extracted document type: {DocumentType}", isSent, documentType);
-                                        }
-                                        else if (line.StartsWith("Document Location:", StringComparison.OrdinalIgnoreCase))
-                                        {
-                                            // Extract filename from path (after last backslash)
-                                            string documentLocation = line.Substring("Document Location:".Length).Trim();
-                                            int lastBackslash = documentLocation.LastIndexOf('\\');
-                                            if (lastBackslash >= 0 && lastBackslash < documentLocation.Length - 1)
+                                            specificFileName = documentLocation.Substring(lastBackslash + 1);
+
+                                            // Strip document type prefix if present (format: DocumentType__filename)
+                                            // This matches the processing in DocumentService.GetListFilesInFolder
+                                            if (specificFileName.IndexOf("__") != -1)
                                             {
-                                                specificFileName = documentLocation.Substring(lastBackslash + 1);
-
-                                                // Strip document type prefix if present (format: DocumentType__filename)
-                                                // This matches the processing in DocumentService.GetListFilesInFolder
-                                                if (specificFileName.IndexOf("__") != -1)
-                                                {
-                                                    specificFileName = specificFileName.Substring(specificFileName.IndexOf("__") + 2);
-                                                }
-
-                                                _logger.LogDebug("IsSent={IsSent}, Extracted specific filename: {FileName}", isSent, specificFileName);
+                                                specificFileName = specificFileName.Substring(specificFileName.IndexOf("__") + 2);
                                             }
+
+                                            _logger.LogDebug("IsSent={IsSent}, Extracted specific filename: {FileName}", isSent, specificFileName);
+                                            isDocumentUploadTask = true;
                                         }
                                     }
                                 }
+                            }
 
-                                // For Task-based messages, fetch attachments from the File entity
+                            if (isDocumentUploadTask)
+                            {
+                                // For Task-based messages, fetch the specific uploaded file from the File entity
                                 attachments = await _documentService.GetAttachmentList(message._ssgCsrsfileValue, "ssg_csrsfile", documentType, cancellationToken);
 
-                                // Filter to only the specific file that was uploaded for this task
-                                if (!string.IsNullOrEmpty(specificFileName) && attachments != null && attachments.Count > 0)
+                                // Filter to only the specific file that was uploaded for this task.
+                                // SharePoint may have truncated the filename (stem prefix + original extension),
+                                // so we first try an exact match and fall back to a stem-prefix match.
+                                if (attachments != null && attachments.Count > 0)
                                 {
-                                    attachments = attachments.Where(a => a.Name != null && a.Name.Equals(specificFileName, StringComparison.OrdinalIgnoreCase)).ToList();
-                                    _logger.LogDebug("IsSent={IsSent}, Filtered attachments to specific file: {FileName}, Count: {Count}", isSent, specificFileName, attachments.Count);
+                                    var exactMatch = attachments
+                                        .Where(a => a.Name != null && a.Name.Equals(specificFileName, StringComparison.OrdinalIgnoreCase))
+                                        .ToList();
+
+                                    if (exactMatch.Count > 0)
+                                    {
+                                        attachments = exactMatch;
+                                        _logger.LogDebug("IsSent={IsSent}, Exact match for file: {FileName}, Count: {Count}", isSent, specificFileName, attachments.Count);
+                                    }
+                                    else
+                                    {
+                                        // SharePoint truncates by cutting the stem; the stored name's stem is always
+                                        // a prefix of the full (un-truncated) stem. Match on same extension + stem prefix.
+                                        string specificExt = Path.GetExtension(specificFileName);
+                                        string specificStem = Path.GetFileNameWithoutExtension(specificFileName);
+
+                                        var prefixMatch = attachments
+                                            .Where(a =>
+                                            {
+                                                if (a.Name == null) return false;
+                                                string aExt = Path.GetExtension(a.Name);
+                                                string aStem = Path.GetFileNameWithoutExtension(a.Name);
+                                                return string.Equals(aExt, specificExt, StringComparison.OrdinalIgnoreCase)
+                                                    && specificStem.StartsWith(aStem, StringComparison.OrdinalIgnoreCase);
+                                            })
+                                            .ToList();
+
+                                        attachments = prefixMatch;
+                                        _logger.LogDebug("IsSent={IsSent}, Prefix match for file: {FileName}, Count: {Count}", isSent, specificFileName, attachments.Count);
+                                    }
                                 }
                             }
                             else
