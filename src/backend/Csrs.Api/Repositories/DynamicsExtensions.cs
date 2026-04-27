@@ -235,6 +235,13 @@ namespace Csrs.Interfaces.Dynamics
             {
                 foreach (var task in tasks.Value)
                 {
+                    // Exclude internal tasks not meant to be shown in the portal outbox
+                    if (task.Subject != null && task.Subject.Contains("Account Setup Submitted", StringComparison.OrdinalIgnoreCase))
+                    {
+                        logger?.LogDebug("⏭️ Skipping internal task from outbox: Subject={Subject}", task.Subject);
+                        continue;
+                    }
+
                     var date = task.Createdon ?? task.Modifiedon;
                     var subject = task.Subject;
                     var description = task.Description;
