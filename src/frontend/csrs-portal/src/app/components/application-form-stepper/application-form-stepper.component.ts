@@ -126,7 +126,9 @@ export class ApplicationFormStepperComponent implements OnInit {
     this.sixFormGroup.controls['contactMethod'].patchValue('Email');
     this.sixFormGroup.controls['incomeAssistance'].patchValue('Yes');
 
-    this.eFormGroup = this._formBuilder.group({});
+    this.eFormGroup = this._formBuilder.group({
+      secondCtrl: ['', Validators.required],
+    });
     this.nineFormGroup = this._formBuilder.group({});
 
     //this.setFormDataFromLocal();
