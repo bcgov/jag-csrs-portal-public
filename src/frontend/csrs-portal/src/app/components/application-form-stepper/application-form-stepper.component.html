@@ -302,7 +302,7 @@
               <button mat-stroked-button color="basic" matStepperPrevious>
                < Back
               </button>
-              <button class="nextStep" mat-raised-button color="primary" matStepperNext>
+              <button class="nextStep" [disabled]="!eFormGroup.valid" mat-raised-button color="primary" matStepperNext>
                 Next >
               </button>
             </div>
