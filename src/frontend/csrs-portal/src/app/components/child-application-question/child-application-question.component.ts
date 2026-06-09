@@ -54,6 +54,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
   preferredContactMethods: any = [];
   courtLevels: any = [];
   courtLocations: any = [];
+  PartyRole = PartyRole;
 
   today = new Date();
   isEditable: boolean = false;
@@ -647,7 +648,7 @@ export class ChildApplicationQuestionComponent implements OnInit {
 
     if (
       roleData.firstControl ==
-      'I am the recipient; I currently receive child support'
+      PartyRole.Recipient
     ) {
       partyRole = PartyRole.Recipient;
       partyEnrolled = 'Recipient';

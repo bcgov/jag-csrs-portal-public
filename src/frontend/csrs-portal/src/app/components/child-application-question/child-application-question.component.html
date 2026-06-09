@@ -26,14 +26,14 @@
                 <div class="row">
                   <div class="col-12">
                     <mat-radio-group formControlName="firstControl">
-                      <mat-radio-button class="radio-question" value="I am the recipient; I currently receive child support">
+                      <mat-radio-button class="radio-question" value="{{PartyRole.Recipient}}">
                         <span class="wrap-mat-radio-label">
-                          I am the recipient; I currently receive child support
+                          I currently receive child support
                         </span>
                       </mat-radio-button>
-                      <mat-radio-button class="radio-question" style="margin-left: 0px" value="I am the payor; I currently pay child support">
+                      <mat-radio-button class="radio-question" style="margin-left: 0px" value="{{PartyRole.Payor}}">
                         <span class="wrap-mat-radio-label">
-                          I am the payor; I currently pay child support
+                          I currently pay child support
                         </span>
                       </mat-radio-button>
                     </mat-radio-group>
