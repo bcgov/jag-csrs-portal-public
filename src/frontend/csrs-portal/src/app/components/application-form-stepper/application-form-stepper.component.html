@@ -279,20 +279,30 @@
                 </li>
               </ul>
               <p>
-                <strong>Collection Notices: </strong><i>Your personal information is collected by Ministry of Attorney General’s Maintenance Enforcement
-                and Locate Services (MELS) pursuant to section 26(a) and (c) of the Freedom of Information and Protection of Privacy Act
-                and the Family Law Act. MELS uses this information for the purposes of establishing, recalculating or enforcing child
-                support. Should you have any questions about the collection, use or disclosure of your personal information, please
-                contact a Client Relations Officer: Mailing Address: PO Box 2074 Station Main, Vancouver BC, V6B 3S3 or Phone
-                Number: (604) 660-2528.</i>
+                <strong>Collection Notices: </strong>
+                <i>
+                  Your personal and financial information is collected by
+                  Ministry of Attorney General’s Maintenance Enforcement and
+                  Locate Services (MELS) pursuant to sections 26(a), 26(c),
+                  27(1)(c.2) and 27(1)(a)(iii) of the Freedom of Information and
+                  Protection of Privacy Act, s. 158 of the Family Law Act and s.
+                  15.1 of the Family Orders and Agreements Enforcement
+                  Assistance Act. MELS uses this information for the purposes of
+                  establishing, recalculating and enforcing child support.
+                  Should you have any questions about the collection, use or
+                  disclosure of your personal information, please contact the
+                  Client Relations Officer: Mailing Address: PO Box 2074 Station
+                  Main, Vancouver, BC or Phone Number: (604) 660-2528.
+                </i>
               </p>
+              <mat-checkbox color="primary" formControlName="secondCtrl" class="example-margin">I accept and acknowledge the terms and conditions listed above.</mat-checkbox>
             </div>
             <mat-divider></mat-divider>
             <div class="nextButton">
               <button mat-stroked-button color="basic" matStepperPrevious>
                < Back
               </button>
-              <button class="nextStep" mat-raised-button color="primary" matStepperNext>
+              <button class="nextStep" [disabled]="!eFormGroup.valid" mat-raised-button color="primary" matStepperNext>
                 Next >
               </button>
             </div>
@@ -445,31 +455,87 @@ the information before submission.
               </div>
               <div class="row agreement">
                 <div class="text-dark">
+                  <p>
+                    <b>
+                      Please review and make sure you understand the following
+                      enrolment responsibilities and Service Portal Terms of Use
+                      they link to.
+                    </b>
+                  </p>
+                  <p>
+                    <b>
+                      If you proceed, you will be deemed to have agreed to them.
+                      If you do not agree, you are not entitled to use this
+                      electronic service.
+                    </b>
+                  </p>
+                  <p>
+                    <b> I understand, acknowledge and agree that: </b>
+                  </p>
                   <ul>
                     <li>
-                      I will notify the recalculation service of any changes in my contact information or any legal action which may impact
-                      the recalculation of my child support.
+                      I will notify the recalculation service of any changes in
+                      my contact information or any legal action which may
+                      impact the recalculation of my child support.
                     </li>
                     <li>
-                      I authorize the Child Support Recalculation Service to access my family court file to obtain information about and copies of any orders, written agreements, court applications and appearances where the Child Support Recalculation Service considers it necessary to provide their service to me. This authorization is made to comply with the requirements of Provincial Court Family Rule 174(1)(e).
+                      I understand that by submitting this electronic
+                      application future program communication will occur
+                      through my recalculation service account unless I request
+                      otherwise.
                     </li>
                     <li>
-                      Unless a court orders otherwise, I may withdraw from the recalculation service providing that the other party also
+                      I authorize the Child Support Recalculation Service to
+                      access my family court file to obtain information about
+                      and copies of any orders, written agreements, court
+                      applications and appearances where the Child Support
+                      Recalculation Service considers it necessary to provide
+                      their service to me. This authorization is made to comply
+                      with the requirements of Provincial Court Family Rule
+                      174(1)(e).
+                    </li>
+                    <li>
+                      Unless a court orders otherwise, I may withdraw from the
+                      recalculation service providing that the other party also
                       agrees to withdraw.
                     </li>
                     <li>
-                      I understand that if I do not provide my income tax information, as requested by the recalculation service, the service
-                      may adjust my annual income amount using rate increases set out under the Family Law Act Regulation.
+                      I understand that if I do not provide my income tax
+                      information, as required, CSRS may request my income tax
+                      information from the Canada Revenue Agency and use that
+                      information to recalculate my child support obligation. If
+                      my income tax information is not available from the Canada
+                      Revenue Agency or I do not provide it, CSRS may adjust my
+                      annual income amount using rate increases set out under
+                      the Family Law Act Regulation.
                     </li>
                     <li>
-                      I understand the use of the information I provide to the recalculation service is for the purposes of child support
-                      recalculation. If I am involved with the Family Maintenance Enforcement Program, my information may be shared
-                      with this program.
+                      I understand the use of the information I provide to CSRS
+                      through the recalculation service account portal is
+                      collected, used and disclosed in accordance with the CSRS
+                      <a
+                        href="javascript:void(0);"
+                        (click)="showInfoCollectionDisclosure()"
+                        >“INFORMATION COLLECTION, USE AND DISCLOSURE”</a
+                      >
+                      provisions contained in the
+                      <a href="javascript:void(0);" (click)="showTermsOfUse()"
+                        >“SERVICE PORTAL TERMS OF USE”</a
+                      >
+                      for the purposes of child support recalculation. This
+                      includes, where applicable, the sharing of information
+                      with the British Columbia Family Maintenance Agency, the
+                      Provincial Court of British Columbia and/or the other
+                      parent.
                     </li>
                     <li>
-                      I understand that by submitting this electronic application future program communication will
-                      occur through my recalculation service account unless I request otherwise. The information I have
-                      given on this form is true and correct to the best of my knowledge and belief.
+                      I have read and understand the “SERVICE PORTAL TERMS OF
+                      USE”, including its “INFORMATION COLLECTION, USE AND
+                      DISCLOSURE” provisions.
+                    </li>
+                    <li>
+                      The information I have given on this form is true and
+                      correct to the best of my knowledge and belief.
                     </li>
                   </ul>
                 </div>

@@ -20,6 +20,7 @@ import {
 } from 'app/api/model/models';
 
 import { DatePipe } from '@angular/common';
+import { ModalDialogHtmlComponent } from '@components/modal-dialog-htmlcontent/modal-dialog-htmlcontent.component';
 @Component({
   selector: 'app-application-form-stepper',
   templateUrl: './application-form-stepper.component.html',
@@ -125,7 +126,9 @@ export class ApplicationFormStepperComponent implements OnInit {
     this.sixFormGroup.controls['contactMethod'].patchValue('Email');
     this.sixFormGroup.controls['incomeAssistance'].patchValue('Yes');
 
-    this.eFormGroup = this._formBuilder.group({});
+    this.eFormGroup = this._formBuilder.group({
+      secondCtrl: ['', Validators.required],
+    });
     this.nineFormGroup = this._formBuilder.group({});
 
     //this.setFormDataFromLocal();
@@ -276,6 +279,20 @@ export class ApplicationFormStepperComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe((result) => {
       //this.logger.info(`Dialog result: ${result}`);
+    });
+  }
+
+  showInfoCollectionDisclosure(): void {
+    const dialogRef = this.dialog.open(ModalDialogHtmlComponent, {
+      width: '850px',
+      data: '',
+    });
+  }
+
+  showTermsOfUse(): void {
+    const dialogRef = this.dialog.open(ModalDialogHtmlComponent, {
+      width: '750px',
+      data: '',
     });
   }
 
