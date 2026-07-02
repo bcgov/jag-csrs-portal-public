@@ -39,8 +39,8 @@ public static class AuthenticationExtensions
             {
                 opts.ForwardDefaultSelector = context =>
                 {
-                    // Dynamics service-to-service calls are served exclusively under /api/dynamics.
-                    if (context.Request.Path.StartsWithSegments("/api/dynamics", StringComparison.OrdinalIgnoreCase))
+                    // Dynamics service-to-service calls are served exclusively under /api/sharepoint.
+                    if (context.Request.Path.StartsWithSegments("/api/sharepoint", StringComparison.OrdinalIgnoreCase))
                     {
                         return DynamicsAuthenticationScheme;
                     }

@@ -14,14 +14,14 @@ namespace Csrs.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Policy = Microsoft.Extensions.DependencyInjection.AuthenticationExtensions.DynamicsPolicy)]
-    public class DynamicsController : ControllerBase
+    public class SharepointController : ControllerBase
     {
         private readonly FileManager.FileManagerClient _fileManagerClient;
-        private readonly ILogger<DynamicsController> _logger;
+        private readonly ILogger<SharepointController> _logger;
 
-        public DynamicsController(
+        public SharepointController(
             FileManager.FileManagerClient fileManagerClient,
-            ILogger<DynamicsController> logger)
+            ILogger<SharepointController> logger)
         {
             _fileManagerClient = fileManagerClient ?? throw new ArgumentNullException(nameof(fileManagerClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -31,11 +31,11 @@ namespace Csrs.Api.Controllers
         /// Creates a folder in SharePoint Online via the FileManager gRPC service.
         /// Called by Dynamics to ensure the corresponding SharePoint folder exists.
         /// </summary>
-        /// <param name="request">Entity name and folder name for the folder to create.</param>
+        /// <param name="request">Document library name and folder name for the folder to create.</param>
         /// <param name="cancellationToken"></param>
         /// <returns>204 No Content on success.</returns>
         /// <response code="204">Folder was created or already exists.</response>
-        /// <response code="400">EntityName or FolderName is missing or empty.</response>
+        /// <response code="400">DocumentLibrary or FolderName is missing or empty.</response>
         /// <response code="401">The request does not carry a valid Dynamics JWT.</response>
         /// <response code="500">The FileManager service reported a failure creating the folder.</response>
         [HttpPost("CreateFolder")]
@@ -53,13 +53,13 @@ namespace Csrs.Api.Controllers
             }
 
             _logger.LogInformation(
-                "Dynamics requested SharePoint folder creation: entity={EntityName}, folder={FolderName}",
-                request.EntityName,
+                "Dynamics requested SharePoint folder creation: documentLibrary={DocumentLibrary}, folder={FolderName}",
+                request.DocumentLibrary,
                 request.FolderName);
 
             var grpcRequest = new CreateFolderRequest
             {
-                EntityName = request.EntityName,
+                DocumentLibrary = request.DocumentLibrary,
                 FolderName = request.FolderName
             };
 
@@ -70,8 +70,8 @@ namespace Csrs.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "FileManager gRPC call failed while creating folder {FolderName} for entity {EntityName}",
-                    request.FolderName, request.EntityName);
+                _logger.LogError(ex, "FileManager gRPC call failed while creating folder {FolderName} in library {DocumentLibrary}",
+                    request.FolderName, request.DocumentLibrary);
                 return StatusCode((int)HttpStatusCode.InternalServerError, "An error occurred while communicating with the file manager service.");
             }
 
@@ -88,11 +88,11 @@ namespace Csrs.Api.Controllers
         /// <summary>Request body for the CreateFolder endpoint.</summary>
         public sealed class CreateFolderInput
         {
-            /// <summary>The Dynamics entity name (e.g. "ssg_csrsfiles").</summary>
+            /// <summary>The SharePoint document library name (e.g. "CSRS File").</summary>
             [Required]
-            public string EntityName { get; set; } = string.Empty;
+            public string DocumentLibrary { get; set; } = string.Empty;
 
-            /// <summary>The folder name to create inside the entity's document library.</summary>
+            /// <summary>The folder name to create inside the document library.</summary>
             [Required]
             public string FolderName { get; set; } = string.Empty;
         }

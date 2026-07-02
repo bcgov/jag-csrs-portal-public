@@ -30,11 +30,9 @@ namespace Csrs.Services.FileManager
             _logger.LogDebug("Create Folder");
 
             var logFolder = WordSanitizer.Sanitize(request.FolderName);
+            var listTitle = request.DocumentLibrary;
 
-            var listTitle = GetDocumentListTitle(request.EntityName);
-            var documentTemplateUrl = GetDocumentTemplateUrlPart(request.EntityName);
-
-            await CreateDocumentLibraryIfMissing(listTitle, documentTemplateUrl);
+            var result = new CreateFolderReply();
 
             var folderExists = false;
             try
@@ -44,16 +42,14 @@ namespace Csrs.Services.FileManager
             }
             catch (SharePointRestException ex)
             {
-                _logger.LogError(ex, "SharePointRestException creating sharepoint folder (status code: {StatusCode})", ex.Response.StatusCode);
+                _logger.LogError(ex, "SharePointRestException checking sharepoint folder (status code: {StatusCode})", ex.Response.StatusCode);
                 folderExists = false;
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Generic Exception creating sharepoint folder");
+                _logger.LogError(e, "Generic Exception checking sharepoint folder");
                 folderExists = false;
             }
-
-            var result = new CreateFolderReply();
 
             if (folderExists)
             {
@@ -63,7 +59,7 @@ namespace Csrs.Services.FileManager
             {
                 try
                 {
-                    await _sharePointFileManager.CreateFolder(GetDocumentListTitle(request.EntityName), request.FolderName);
+                    await _sharePointFileManager.CreateFolder(listTitle, request.FolderName);
                     var folder = await _sharePointFileManager.GetFolder(listTitle, request.FolderName);
                     if (folder != null) result.ResultStatus = ResultStatus.Success;
                 }
