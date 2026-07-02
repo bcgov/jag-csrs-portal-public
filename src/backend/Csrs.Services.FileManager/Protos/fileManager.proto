@@ -36,7 +36,7 @@ service FileManager {
 }
 
 message CreateFolderRequest {
-    string entityName = 1;
+    string documentLibrary = 1;
     string folderName = 2;
 }
 
