@@ -21,7 +21,7 @@ namespace Csrs.Services.FileManager.OpenShiftIntegration
 
         public OpenShiftCertificateExpiration(
             IOptions<OpenShiftIntegrationOptions> options,
-            OpenShiftCertificateLoader certificateLoader, 
+            OpenShiftCertificateLoader certificateLoader,
             IHostApplicationLifetime applicationLifetime,
             ILogger<OpenShiftCertificateExpiration> logger)
         {
@@ -46,11 +46,11 @@ namespace Csrs.Services.FileManager.OpenShiftIntegration
                     _logger.LogDebug("Certificate expires at {CertificateExpiration}", certificate.NotAfter.ToUniversalTime());
 
                     // will loop if the number of milliseconds to sleep is greater than int.MaxValue (24.8 days)
-                    bool loop; 
+                    bool loop;
                     {
                         loop = false;
-                        var expiresAt = certificate.NotAfter - NotAfterMargin; // NotAfter is in local time.
-                        var tillExpires = expiresAt - DateTime.Now;
+                        var expiresAt = certificate.NotAfter.ToUniversalTime() - NotAfterMargin; // Use UTC to avoid DST ambiguity.
+                        var tillExpires = expiresAt - DateTime.UtcNow;
                         if (tillExpires > TimeSpan.Zero)
                         {
                             if (tillExpires > RestartSpan)

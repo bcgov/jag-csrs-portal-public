@@ -97,7 +97,7 @@ namespace Csrs.Api.Features.Accounts
                 var fullName = parties?.Value[0].SsgFullname;
 
                 task.Subject = $"File {file.SsgFilenumber} - Account Setup Submitted";
-                task.Description = $"Respondent Application submitted, please review.\nParty: {fullName}"; 
+                task.Description = $"Respondent Application submitted, please review.\nParty: {fullName}";
                 task.Isregularactivity = true;
 
                 var owninguser = file._owninguserValue;
@@ -110,12 +110,12 @@ namespace Csrs.Api.Features.Accounts
 
                 task.Prioritycode = 1;// Normal
                 task.Statuscode = 2; // Not Started
-                task.Scheduledend = new DateTimeOffset(DateTime.UtcNow);
+                task.Scheduledend = DateTimeOffset.UtcNow;
 
                 try
                 {
                     MicrosoftDynamicsCRMtask result = await _dynamicsClient.Tasks.CreateAsync(task);
-                } 
+                }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "An exception occurred while creating task with partyId = {PartyId} and fileid = {FileId},  CSRS account file update will be aborted", partyId, fileId);
