@@ -605,14 +605,21 @@ mat-grid-tile.bottom_line {
 }
 
 .maintenance-banner {
-  color: #7b1a1a;
-  background-color: #fff3f3;
-  border: 2px solid #e53e3e;
+  color: #ffffff;
+  background-color: #ce3e39;
   border-radius: 8px;
   padding: 16px 24px;
   text-align: center;
   font-size: 18px;
   line-height: 1.6;
+
+  &-icon {    
+    vertical-align: middle;
+    margin-right: 8px;
+    font-size: 22px;
+    height: 22px;
+    width: 22px;
+  }
 }
 
 .toolTipIcon{
