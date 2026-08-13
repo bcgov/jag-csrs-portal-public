@@ -28,11 +28,9 @@
 
   <div class="background_image">
     <div class="container">
-      <section [ngStyle]="{ 'display': disabledLogin == true ? 'block' : 'none' }">
-        <div style="color: red; border: 4px solid red; padding: 5px; text-align: center;">
-          Website maintenance in progress. We apologize for any inconvenience.
-          <br />
-          To contact CSRS, please call 1-866-660-2684
+      <section [ngStyle]="{ 'display': disabledLogin == true ? 'block' : 'none' }" style="padding-top: 16px;">
+        <div class="maintenance-banner">
+          Please note that due to system maintenance, CSRS is unable to accept uploaded documents at this time. Messages can still be sent. We appreciated your patience. Should you require assistance, please contact us.
         </div>
       </section>
       <section>
