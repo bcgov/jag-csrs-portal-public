@@ -11,17 +11,26 @@
  */
 /* tslint:disable:no-unused-variable member-ordering */
 
-import { Inject, Injectable, Optional }                      from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams,
-         HttpResponse, HttpEvent, HttpParameterCodec, HttpContext 
-        }       from '@angular/common/http';
-import { CustomHttpParameterCodec }                          from '../encoder';
-import { Observable }                                        from 'rxjs';
+import {
+    HttpClient,
+    HttpContext,
+    HttpEvent,
+    HttpHeaders,
+    HttpParameterCodec,
+    HttpParams,
+    HttpResponse
+} from '@angular/common/http';
+import { Inject, Injectable, Optional } from '@angular/core';
+import { Observable } from 'rxjs';
+import { CustomHttpParameterCodec } from '../encoder';
+
+// @ts-ignore
+import { AppConfig } from '../model/appConfig.model';
 
 
 // @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
-import { Configuration }                                     from '../configuration';
+import { Configuration } from '../configuration';
+import { BASE_PATH } from '../variables';
 
 
 
@@ -89,9 +98,9 @@ export class ConfigService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public apiConfigAppconfigGet(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<Array<string>>;
-    public apiConfigAppconfigGet(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<Array<string>>>;
-    public apiConfigAppconfigGet(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<Array<string>>>;
+    public apiConfigAppconfigGet(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<AppConfig>;
+    public apiConfigAppconfigGet(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpResponse<AppConfig>>;
+    public apiConfigAppconfigGet(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<HttpEvent<AppConfig>>;
     public apiConfigAppconfigGet(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'text/plain' | 'application/json' | 'text/json', context?: HttpContext}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
@@ -134,7 +143,7 @@ export class ConfigService {
             }
         }
 
-        return this.httpClient.get<Array<string>>(`${this.configuration.basePath}/api/config/appconfig`,
+        return this.httpClient.get<AppConfig>(`${this.configuration.basePath}/api/config/appconfig`,
             {
                 context: localVarHttpContext,
                 responseType: <any>responseType_,

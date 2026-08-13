@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Csrs.Api.Models;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -18,17 +19,13 @@ namespace Csrs.Api.Controllers
         [AllowAnonymous]
         [HttpGet("AppConfig")]
         [ProducesResponseType((int)HttpStatusCode.OK)]
-        public List<string> GetAppSettings()
+        public AppConfig GetAppSettings()
         {
-            var activeFeatures = new List<string>();
-
-            var value = _configuration["ISLOGINDISABLED"];
-            if (!string.IsNullOrEmpty(value))
+            return new AppConfig
             {
-                activeFeatures.Add(value);
-            }
-
-            return activeFeatures;
+                IsLoginDisabled = _configuration.GetValue<bool>("ISLOGINDISABLED", defaultValue: false),
+                IsMaintenanceBannerVisible = _configuration.GetValue<bool>("ISMAINTENANCEBANNER", defaultValue: false)
+            };
         }
     }
 }

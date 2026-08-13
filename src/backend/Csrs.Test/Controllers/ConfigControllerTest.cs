@@ -21,7 +21,7 @@ namespace Csrs.Test.Controllers
         }
 
         [Fact]
-        public List<string> CreateShouldCreateCorrectRequest()
+        public AppConfig CreateShouldCreateCorrectRequest()
         {
             var logger = GetMockLogger();
             var mediator = GetMockMediator(true);
