@@ -26,6 +26,7 @@ export class LandingComponent implements OnInit {
   public routes: Routes;
   public disabledLogin = false;
   public maintenanceBannerVisible = false;
+  public maintenanceBannerText = '';
 
   constructor(
     public oidcSecurityService: OidcSecurityService,
@@ -67,6 +68,7 @@ export class LandingComponent implements OnInit {
         this.disabledLogin = data.isLoginDisabled ?? false;
         this.maintenanceBannerVisible =
           data.isMaintenanceBannerVisible ?? false;
+        this.maintenanceBannerText = data.maintenanceBannerText ?? '';
       }
     });
   }

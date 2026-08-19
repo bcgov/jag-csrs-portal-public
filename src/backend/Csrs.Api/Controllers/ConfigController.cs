@@ -21,10 +21,15 @@ namespace Csrs.Api.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public AppConfig GetAppSettings()
         {
+            var isMaintenanceBannerVisible = _configuration.GetValue<bool>("ISMAINTENANCEBANNER", defaultValue: false);
+
             return new AppConfig
             {
                 IsLoginDisabled = _configuration.GetValue<bool>("ISLOGINDISABLED", defaultValue: false),
-                IsMaintenanceBannerVisible = _configuration.GetValue<bool>("ISMAINTENANCEBANNER", defaultValue: false)
+                IsMaintenanceBannerVisible = isMaintenanceBannerVisible,
+                MaintenanceBannerText = isMaintenanceBannerVisible
+                    ? _configuration.GetValue<string>("MAINTENANCEBANNERTEXT", string.Empty)
+                    : string.Empty
             };
         }
     }
