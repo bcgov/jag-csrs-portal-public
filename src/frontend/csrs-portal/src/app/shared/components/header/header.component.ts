@@ -1,12 +1,13 @@
 import {
-  Component,
   ChangeDetectionStrategy,
+  Component,
   OnInit
 } from '@angular/core';
 import { LoggerService } from '@core/services/logger.service';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
+import { ConfigService } from 'app/api/api/config.service';
 import { AppConfigService } from 'app/services/app-config.service';
 import { LogInOutService } from 'app/services/log-in-out.service';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
 @Component({
   selector: 'app-header',
   templateUrl: './header.component.html',
@@ -17,12 +18,14 @@ export class HeaderComponent implements OnInit {
   public btnLabel: string = '';
   public btnIcon: string = '';
   public portalUser: string = '';
+  public isLoginDisabled = false;
   isMobile: boolean = false;
 
   constructor(protected logger: LoggerService,
               private appConfigService: AppConfigService,
               private logInOutService: LogInOutService,
-              public oidcSecurityService: OidcSecurityService) {
+              public oidcSecurityService: OidcSecurityService,
+              private appSettingService: ConfigService) {
   }
 
   public async ngOnInit() {
@@ -44,10 +47,20 @@ export class HeaderComponent implements OnInit {
       }
     });
 
+    this.appSettingService.apiConfigAppconfigGet().subscribe((data) => {
+      if (data !== null) {
+        this.isLoginDisabled = data.isLoginDisabled ?? false;
+      }
+    });
+
   }
 
   public onClickBtn()
   {
+    if (this.isLoginDisabled) {
+      return;
+    }
+
     //this.logInOutService.logoutUser(this.btnLabel);
     if (!this.oidcSecurityService.isAuthenticated())
     {
