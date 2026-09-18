@@ -13,7 +13,13 @@
         /// <summary>
         /// Contains the OAuth configuration for accessing Dynamics
         /// </summary>
+        [Obsolete("Use " + nameof(Dynamics) + " instead. Kept for backwards compatibility.")]
         public OAuthConfiguration? OAuth { get; set; }
+
+        /// <summary>
+        /// Contains the Dynamics connection and authentication (ADFS or Entra ID) configuration.
+        /// </summary>
+        public DynamicsOptions? Dynamics { get; set; }
 
         /// <summary>
         /// Contains the Api GateWay options for accessing Dynamics

@@ -27,11 +27,11 @@ public static class WebApplicationBuilderExtensions
         var logger = Log.ForContext(typeof(WebApplicationBuilderExtensions));
 
         var configuration = builder.Configuration.Get<CsrsConfiguration>();
-        OAuthConfiguration? oAuthOptions = configuration?.OAuth;
+        DynamicsOptions? dynamicsOptions = configuration?.Dynamics;
 
-        if (string.IsNullOrEmpty(oAuthOptions?.ResourceUrl))
+        if (dynamicsOptions is null)
         {
-            const string message = "OAuth configuration is not set";
+            const string message = "Dynamics configuration is not set";
             logger.Error(message);
             throw new ConfigurationErrorsException(message);
         }
@@ -46,8 +46,9 @@ public static class WebApplicationBuilderExtensions
 
         var services = builder.Services;
 
-        logger.Debug("Setting up oAuthOptions and apiGatewayOptions");
-        services.AddSingleton(oAuthOptions);
+        logger.Debug("Setting up dynamicsOptions and apiGatewayOptions");
+        services.AddSingleton(dynamicsOptions);
+        services.Configure<DynamicsOptions>(builder.Configuration.GetSection(nameof(CsrsConfiguration.Dynamics)));
         services.AddSingleton(apiGatewayOptions);
 
         logger.Debug("Adding memory cache");
@@ -58,23 +59,31 @@ public static class WebApplicationBuilderExtensions
         // Add ApiGateway Middleware
         services.AddTransient<ApiGatewayHandler>();
 
-        // Register IOAuthApiClient
-        services.AddHttpClient<IOAuthApiClient, OAuthApiClient>(client =>
-        {
-            client.Timeout = TimeSpan.FromSeconds(15); // set the auth timeout
-        });
-        services.AddSingleton(new DynamicsClientOptions { NativeOdataResourceUrl = oAuthOptions.ResourceUrl });
-        services.AddHttpClient<IDynamicsClient, DynamicsClient>(client =>
-        {
+        // Register IOAuthApiClient, using the token client that matches the configured
+        // Dynamics authentication type (cloud Entra ID vs on-premise ADFS).
+        string dynamicsApiEndpointUrl = ConfigureDynamicsAuthentication(services, dynamicsOptions, logger);
 
-            client.BaseAddress = new Uri(apiGatewayOptions.BasePath);
+        // Cloud (EntraId) hits the Dynamics endpoint directly, the on-premise (ADFS) setup
+        // routes requests through the API Gateway, so only attach the ApiGatewayHandler
+        // in the on-premise case. NativeOdataResourceUrl must match this same base address,
+        // since it's used to build @odata.bind values (e.g. ownerid@odata.bind) that Dynamics
+        // validates against the request's ServiceRouteUri.
+        string apiBaseAddress = dynamicsOptions.IsCloud ? dynamicsApiEndpointUrl : apiGatewayOptions.BasePath;
+
+        services.AddSingleton(new DynamicsClientOptions { NativeOdataResourceUrl = apiBaseAddress });
+
+        var dynamicsClientBuilder = services.AddHttpClient<IDynamicsClient, DynamicsClient>(client =>
+        {
+            client.BaseAddress = new Uri(apiBaseAddress);
             client.Timeout = TimeSpan.FromSeconds(30); // data timeout
-            //client.BaseAddress = new Uri(oAuthOptions.ResourceUrl);
-            //client.Timeout = TimeSpan.FromSeconds(300); // data timeout
 
         })
-        .AddHttpMessageHandler<OAuthHandler>()
-        .AddHttpMessageHandler<ApiGatewayHandler>();
+        .AddHttpMessageHandler<OAuthHandler>();
+
+        if (!dynamicsOptions.IsCloud)
+        {
+            dynamicsClientBuilder.AddHttpMessageHandler<ApiGatewayHandler>();
+        }
 
         logger.Debug("Configuing FileManager Service");
         ConfigureFileManagerService(builder, configuration?.FileManager);
@@ -91,6 +100,51 @@ public static class WebApplicationBuilderExtensions
         services.AddTransient<IDocumentService, DocumentService>();
         services.AddTransient<ITaskService, TaskService>();
 
+    }
+
+    /// <summary>
+    /// Registers the <see cref="IOAuthApiClient"/> implementation matching the configured
+    /// Dynamics authentication type, and returns the Dynamics API endpoint url.
+    /// </summary>
+    private static string ConfigureDynamicsAuthentication(IServiceCollection services, DynamicsOptions dynamicsOptions, Serilog.ILogger logger)
+    {
+        if (dynamicsOptions.IsCloud)
+        {
+            EntraIdOptions? entraIdOptions = dynamicsOptions.EntraId;
+            if (string.IsNullOrEmpty(entraIdOptions?.ResourceName) || string.IsNullOrEmpty(entraIdOptions?.DynamicsApiEndpointUrl))
+            {
+                const string message = $"Dynamics EntraId configuration is not set, {nameof(CsrsConfiguration.Dynamics)}:{nameof(DynamicsOptions.EntraId)} is required when {nameof(DynamicsOptions.AuthenticationType)} is '{DynamicsOptions.CloudAuthenticationType}'.";
+                logger.Error(message);
+                throw new ConfigurationErrorsException(message);
+            }
+
+            logger.Information("Dynamics AuthenticationType is '{AuthenticationType}', using EntraId (cloud) token client", dynamicsOptions.AuthenticationType);
+            services.AddHttpClient<IOAuthApiClient, EntraIdTokenClient>(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(15); // set the auth timeout
+            });
+
+            return entraIdOptions.DynamicsApiEndpointUrl;
+        }
+        else
+        {
+            AdfsOptions? adfsOptions = dynamicsOptions.ADFS;
+            if (string.IsNullOrEmpty(adfsOptions?.ResourceName) || string.IsNullOrEmpty(adfsOptions?.DynamicsApiEndpointUrl))
+            {
+                const string message = $"Dynamics ADFS configuration is not set, {nameof(CsrsConfiguration.Dynamics)}:{nameof(DynamicsOptions.ADFS)} is required when {nameof(DynamicsOptions.AuthenticationType)} is '{DynamicsOptions.OnPremiseAuthenticationType}'.";
+                logger.Error(message);
+                throw new ConfigurationErrorsException(message);
+            }
+
+            logger.Information("Dynamics AuthenticationType is '{AuthenticationType}', using ADFS (on-premise) token client", dynamicsOptions.AuthenticationType);
+            services.AddSingleton(adfsOptions);
+            services.AddHttpClient<IOAuthApiClient, AdfsTokenClient>(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(15); // set the auth timeout
+            });
+
+            return adfsOptions.DynamicsApiEndpointUrl;
+        }
     }
 
     private static void ConfigureFileManagerService(WebApplicationBuilder builder, FileManagerConfiguration? configuration)
