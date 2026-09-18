@@ -61,16 +61,16 @@ public static class WebApplicationBuilderExtensions
 
         // Register IOAuthApiClient, using the token client that matches the configured
         // Dynamics authentication type (cloud Entra ID vs on-premise ADFS).
-        string dynamicsApiEndpointUrl = ConfigureDynamicsAuthentication(services, dynamicsOptions, logger);
+        (string resourceName, string dynamicsApiEndpointUrl) = ConfigureDynamicsAuthentication(services, dynamicsOptions, logger);
 
         // Cloud (EntraId) hits the Dynamics endpoint directly, the on-premise (ADFS) setup
         // routes requests through the API Gateway, so only attach the ApiGatewayHandler
-        // in the on-premise case. NativeOdataResourceUrl must match this same base address,
-        // since it's used to build @odata.bind values (e.g. ownerid@odata.bind) that Dynamics
-        // validates against the request's ServiceRouteUri.
+        // in the on-premise case. NativeOdataResourceUrl must always be Dynamics' own native
+        // resource url (not the gateway's), since it's used to build @odata.bind values
+        // (e.g. ownerid@odata.bind) that Dynamics validates against its own service root.
         string apiBaseAddress = dynamicsOptions.IsCloud ? dynamicsApiEndpointUrl : apiGatewayOptions.BasePath;
 
-        services.AddSingleton(new DynamicsClientOptions { NativeOdataResourceUrl = apiBaseAddress });
+        services.AddSingleton(new DynamicsClientOptions { NativeOdataResourceUrl = resourceName });
 
         var dynamicsClientBuilder = services.AddHttpClient<IDynamicsClient, DynamicsClient>(client =>
         {
@@ -104,9 +104,10 @@ public static class WebApplicationBuilderExtensions
 
     /// <summary>
     /// Registers the <see cref="IOAuthApiClient"/> implementation matching the configured
-    /// Dynamics authentication type, and returns the Dynamics API endpoint url.
+    /// Dynamics authentication type, and returns the native resource name (used to build
+    /// @odata.bind values) along with the Dynamics API endpoint url.
     /// </summary>
-    private static string ConfigureDynamicsAuthentication(IServiceCollection services, DynamicsOptions dynamicsOptions, Serilog.ILogger logger)
+    private static (string ResourceName, string DynamicsApiEndpointUrl) ConfigureDynamicsAuthentication(IServiceCollection services, DynamicsOptions dynamicsOptions, Serilog.ILogger logger)
     {
         if (dynamicsOptions.IsCloud)
         {
@@ -124,7 +125,8 @@ public static class WebApplicationBuilderExtensions
                 client.Timeout = TimeSpan.FromSeconds(15); // set the auth timeout
             });
 
-            return entraIdOptions.DynamicsApiEndpointUrl;
+            // Cloud is hit directly (no gateway), so the native resource url is the same as the endpoint url.
+            return (entraIdOptions.DynamicsApiEndpointUrl, entraIdOptions.DynamicsApiEndpointUrl);
         }
         else
         {
@@ -143,7 +145,9 @@ public static class WebApplicationBuilderExtensions
                 client.Timeout = TimeSpan.FromSeconds(15); // set the auth timeout
             });
 
-            return adfsOptions.DynamicsApiEndpointUrl;
+            // On-premise requests go through the API Gateway, but @odata.bind values must
+            // reference Dynamics' own native resource url, not the gateway's.
+            return (adfsOptions.ResourceName, adfsOptions.DynamicsApiEndpointUrl);
         }
     }
 
