@@ -22,6 +22,9 @@ FROM build AS publish
 RUN dotnet publish "Csrs.Api.csproj" -c Release -o /app/publish
 
 FROM base AS final
+ARG GIT_SHA=unknown
+LABEL org.opencontainers.image.revision=$GIT_SHA
 WORKDIR /opt/app-root/app
 COPY --from=publish /app/publish .
+ENV GIT_SHA=$GIT_SHA
 ENTRYPOINT ["dotnet", "Csrs.Api.dll"]
