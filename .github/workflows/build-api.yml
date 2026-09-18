@@ -46,6 +46,8 @@ jobs:
         run: |
           shortSha=$(echo $(git rev-parse --short HEAD) | cut -c1-7)
           echo "gitsha=$shortSha" >> $GITHUB_ENV
+          fullSha=$(git rev-parse HEAD)
+          echo "gitshafull=$fullSha" >> $GITHUB_ENV
       
       - name: env variables
 
@@ -87,6 +89,7 @@ jobs:
           IMAGE: ${{secrets.OPENSHIFT_EXTERNAL_REPOSITORY}}/${{secrets.OPENSHIFT_LICENSE_PLATE}}-${{env.env}}/${{env.api}}:${{env.env}}
         run: |
           docker build -f ./src/backend/Dockerfile.rhel8 \
+            --build-arg GIT_SHA=${{env.gitshafull}} \
             --tag ${IMAGE} \
             ${CONTEXT}
           docker push ${IMAGE}

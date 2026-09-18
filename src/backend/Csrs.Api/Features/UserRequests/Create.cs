@@ -147,7 +147,17 @@ namespace Csrs.Api.Features.UserRequests
                 }
 
                 //ap.Statecode = 0;  defaults in DB
-                MicrosoftDynamicsCRMtask result = await _dynamicsClient.Tasks.CreateAsync(task);
+                MicrosoftDynamicsCRMtask result;
+                try
+                {
+                    result = await _dynamicsClient.Tasks.CreateAsync(task);
+                }
+                catch (HttpOperationException ex)
+                {
+                    _logger.LogError(ex, "ERROR creating User Request task in Dynamics, StatusCode={StatusCode}, ResponseContent={ResponseContent}",
+                        ex.Response?.StatusCode, ex.Response?.Content);
+                    throw;
+                }
                 _logger.AddProperty("ActivityId", result.Activityid);
                 _logger.LogDebug("User Request created successfully: ActivityId={ActivityId}", result.Activityid);
                 if (_logger.IsEnabled(LogLevel.Debug))
