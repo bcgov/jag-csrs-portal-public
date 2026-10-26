@@ -29,6 +29,13 @@ namespace Csrs.Api.Configuration
         public EntraIdOptions? EntraId { get; set; }
 
         /// <summary>
+        /// GUID of the Dynamics team (<c>team</c> record) that should own newly created CSRS files.
+        /// Environment variable: <c>DYNAMICS__DEFAULTFILEOWNERTEAMID</c>. Optional; when missing or
+        /// invalid a warning is logged and the file is created without an explicit owner.
+        /// </summary>
+        public string? DefaultFileOwnerTeamId { get; set; }
+
+        /// <summary>
         /// Gets a value indicating whether the cloud (Entra ID) authentication setup
         /// should be used instead of the on-premise (ADFS) setup.
         /// </summary>
