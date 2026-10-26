@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Csrs.Api.Configuration;
 using Csrs.Api.Models;
 using Csrs.Api.Repositories;
 using Csrs.Interfaces.Dynamics;
@@ -16,13 +17,16 @@ namespace Csrs.Api.Services
         private readonly IDynamicsClient _dynamicsClient;
         private readonly IMapper _mapper;
         private readonly ILogger<FileService> _logger;
-        
+        private readonly DynamicsOptions _dynamicsOptions;
+
         public FileService(
             IMemoryCache cache,
             IDynamicsClient dynamicsClient,
             IMapper mapper,
+            DynamicsOptions dynamicsOptions,
             ILogger<FileService> logger)
         {
+            _dynamicsOptions = dynamicsOptions ?? throw new ArgumentNullException(nameof(dynamicsOptions));
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
             _dynamicsClient = dynamicsClient ?? throw new ArgumentNullException(nameof(dynamicsClient));
             _mapper = mapper;
@@ -69,6 +73,18 @@ namespace Csrs.Api.Services
                 {
                     csrsFile.SsgRecipientODataBind = _dynamicsClient.GetEntityURI("ssg_csrsfiles", otherParty.SsgCsrspartyid);
                 }
+            }
+
+            // the owner must be a team and must be set in the create call itself (not via a later assign)
+            string? ownerTeamId = _dynamicsOptions.DefaultFileOwnerTeamId;
+            if (Guid.TryParse(ownerTeamId, out Guid ownerTeamGuid) && ownerTeamGuid != Guid.Empty)
+            {
+                csrsFile.OwnerIdODataBind = _dynamicsClient.GetEntityURI("teams", ownerTeamGuid.ToString());
+            }
+            else
+            {
+                _logger.LogWarning("{Setting} is missing or not a valid GUID, the file will be created without an explicit owner team",
+                    $"{nameof(CsrsConfiguration.Dynamics)}:{nameof(DynamicsOptions.DefaultFileOwnerTeamId)}");
             }
 
             try
