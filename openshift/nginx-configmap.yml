@@ -145,6 +145,8 @@ objects:
 
             proxy_pass http://jag-csrs-api:8080/api/;
 
+            proxy_max_temp_file_size 0;
+
             client_max_body_size 10M;
 
             client_body_timeout 180s;
