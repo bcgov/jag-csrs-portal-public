@@ -39,6 +39,11 @@ namespace Csrs.Api.Services
                     task.OwninguserODataBind = _dynamicsClient.GetEntityURI("systemusers", file._owninguserValue);
                     task.OwnerIdODataBind = _dynamicsClient.GetEntityURI("systemusers", file._owninguserValue);
                 }
+                else if (!string.IsNullOrEmpty(file._owningteamValue))
+                {
+                    // file is not yet assigned to a user, assign the task to the owning team
+                    task.OwnerIdODataBind = _dynamicsClient.GetEntityURI("teams", file._owningteamValue);
+                }
 
 
                 task.RegardingobjectidSsgCsrsfileODataBind = _dynamicsClient.GetEntityURI("ssg_csrsfiles", file.SsgCsrsfileid);

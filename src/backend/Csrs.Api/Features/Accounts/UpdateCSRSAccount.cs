@@ -106,6 +106,11 @@ namespace Csrs.Api.Features.Accounts
                     task.OwninguserODataBind = _dynamicsClient.GetEntityURI("systemusers", owninguser);
                     task.OwnerIdODataBind = _dynamicsClient.GetEntityURI("systemusers", owninguser);
                 }
+                else if (!string.IsNullOrEmpty(file._owningteamValue))
+                {
+                    // file is not yet assigned to a user, assign the task to the owning team
+                    task.OwnerIdODataBind = _dynamicsClient.GetEntityURI("teams", file._owningteamValue);
+                }
                 task.RegardingobjectidSsgCsrsfileODataBind = _dynamicsClient.GetEntityURI("ssg_csrsfiles", fileId);
 
                 task.Prioritycode = 1;// Normal
