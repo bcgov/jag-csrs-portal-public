@@ -125,10 +125,14 @@ namespace Csrs.Api.Features.UserRequests
                     task.OwninguserODataBind = userUri;
                     task.OwnerIdODataBind = userUri;
                 }
+                else if (!string.IsNullOrEmpty(originFile._owningteamValue))
+                {
+                    // New files are owned by a team until staff assigns a user, route the task to that team
+                    task.OwnerIdODataBind = _dynamicsClient.GetEntityURI("teams", originFile._owningteamValue);
+                }
                 else
                 {
-                    _logger.LogInformation("File {FileId} has no owner, cannot create User Request", request.FileId);
-                    return new Response("File has no owner");
+                    _logger.LogWarning("File {FileId} has no owning user or team, User Request task will use the default owner", request.FileId);
                 }
 
                 task.RegardingobjectidSsgCsrsfileODataBind = _dynamicsClient.GetEntityURI("ssg_csrsfiles", originFile.SsgCsrsfileid);
